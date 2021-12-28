@@ -1,72 +1,81 @@
-from telegram.ext import Updater
+from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
 from telegram import Update
-from telegram.ext import CallbackContext
-from telegram.ext import CommandHandler
 import requests
 
-# import logging
 
-#TODO: check if there is an option to print errors in the Telgram-bot in red
-
+MAX_USER_NAME_LENGTH = 30
 TOKEN = '5015705357:AAGVtnC3_R809aHQLoRGWGAs8DA0iOle1n0'
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
-# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#                      level=logging.INFO)
+def send_message_to_bot(context, chat_id, message):
+    context.bot.send_message(chat_id=chat_id, text=message)
 
 def start(update: Update, context: CallbackContext):
-    options = '/register <user-name> - Register to start answering polls via telegram \n\n ' \
-        'user-name should be a single word, symbols are allowed' \
+    options = '/register <user-name> - Register to start answering polls via telegram\n\n' \
+        'user-name should be a single word, symbols are allowed and should be no longer than 30\n\n' \
         '/remove <user-name> To stop getting polls queries \n\n' \
         '/start Use the start command anytime to see this menu again'
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hello user!")
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to Polls Manager \n Please select one of the options below:")
-    context.bot.send_message(chat_id=update.effective_chat.id, text=options)
+    chat_id = update.effective_chat.id
+    user_telegram_name = update.effective_user.name
+    send_message_to_bot(context, chat_id, f"Hello {user_telegram_name}!")
+    send_message_to_bot(context, chat_id, "Welcome to Polls Manager \n Please select one of the options below:")
+    send_message_to_bot(context, chat_id, options)
 
 def register(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
     if (len(context.args) == 0):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="ERROR: no user name entered \n please try again to register")
+        send_message_to_bot(context, chat_id, "ERROR: no user name entered \n please try again to register")
     elif (len(context.args) > 1):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="ERROR: user name isn't valid - user name should be a single word \n please try again to register")
+        send_message_to_bot(context, chat_id, "ERROR: user name isn't valid - user name should be a single word \n please try again to register")
     else:
         user_name = str(context.args[0])
-        # TODO: handle username too long (according to database constraints)(right now the length is 80)
-        url = f'http://127.0.0.1:5000/register-user/{user_name}'
-        data = {'user_name' : user_name} # TODO: check how to send request without duplicated data
+        if (len(user_name) > MAX_USER_NAME_LENGTH):
+            send_message_to_bot(context, chat_id, f"ERROR: user-name could not be longer than {MAX_USER_NAME_LENGTH}")
+            return
+        url = f'http://127.0.0.1:5000/register-user/'
+        data = {'user_id': chat_id,'user_name' : user_name} 
         server_response = requests.post(url=url, data=data)
         if server_response.status_code == 200:
-             context.bot.send_message(chat_id=update.effective_chat.id, text=f"{user_name} was registered successfuly!")
+             send_message_to_bot(context, chat_id, f"{user_name} was registered successfuly!")
         elif server_response.status_code == 403:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"ERROR: user-name {user_name} already exists \n please try again to register")
+            user_telegram_name = update.effective_user.name
+            send_message_to_bot(context, chat_id, f"ERROR: Hi {user_telegram_name}! you have already registered \n you can remove your user with /remove command and try again")
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"ERROR: register {user_name} failed due to internal error")
+            send_message_to_bot(context, chat_id, f"ERROR: register {user_name} failed due to internal error")
 
 def remove(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
     if (len(context.args) == 0):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="ERROR: no user name entered \n please try again to remove user")
+        send_message_to_bot(context, chat_id, "ERROR: no user name entered \n please try again to remove user")
     elif (len(context.args) > 1):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="ERROR: user name isn't valid - user name should be a single word \n please try again to remove user")
+        send_message_to_bot(context, chat_id, "ERROR: user name isn't valid - user name should be a single word \n please try again to remove user")
     else:
         user_name = str(context.args[0])
-        url = f'http://127.0.0.1:5000/remove-user/{user_name}'
-        data = {'user_name' : user_name} # TODO: check how to send request without duplicated data
+        chat_id = update.effective_chat.id
+        url = f'http://127.0.0.1:5000/remove-user/'
+        data = {'user_id': chat_id,'user_name' : user_name} 
         server_response = requests.delete(url=url, data=data)
         if server_response.status_code == 200:
-             context.bot.send_message(chat_id=update.effective_chat.id, text=f"{user_name} was removed successfuly!")
+            send_message_to_bot(context, chat_id, f"{user_name} was removed successfuly!")
         elif server_response.status_code == 403:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"ERROR: user-name {user_name} doesn't exists")
+            user_telegram_name = update.effective_user.name
+            send_message_to_bot(context, chat_id, f"ERROR: Hi {user_telegram_name}! you didn't register a user with the name {user_name}")
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"ERROR: remove {user_name} failed due to internal error")
+            send_message_to_bot(context, chat_id, f"ERROR: remove {user_name} failed due to internal error")
 
-start_handler = CommandHandler('start', start)
+def unknown_command(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    send_message_to_bot(context, chat_id, "ERROR: sorry, I didn't understand this command. \n For a list of supported commands please use /start command")
+
+start_handler = CommandHandler('start', start, run_async=True)
 dispatcher.add_handler(start_handler)
 
-register_handler = CommandHandler('register', register)
+register_handler = CommandHandler('register', register, run_async=True)
 dispatcher.add_handler(register_handler)
 
-remove_handler = CommandHandler('remove', remove)
+remove_handler = CommandHandler('remove', remove, run_async=True)
 dispatcher.add_handler(remove_handler)
 
-# TODO: handle case of not valid command (/blabla)
+dispatcher.add_handler(MessageHandler(Filters.command, unknown_command, run_async=True))
 
 updater.start_polling()
