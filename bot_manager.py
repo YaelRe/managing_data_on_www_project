@@ -1,5 +1,5 @@
-from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
-from telegram import Update
+from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters,  PollAnswerHandler
+from telegram import Update, ReplyKeyboardRemove
 import requests
 
 
@@ -61,11 +61,25 @@ def remove(update: Update, context: CallbackContext):
         else:
             send_message_to_bot(context, chat_id, f"ERROR: remove {user_name} failed due to internal error")
 
+def no_command(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    send_message_to_bot(context, chat_id, "ERROR: sorry, I didn't understand this command. \n For a list of supported commands please use /start command")
+
 def unknown_command(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     send_message_to_bot(context, chat_id, "ERROR: sorry, I didn't understand this command. \n For a list of supported commands please use /start command")
 
-
+def receive_poll_answer(update: Update, context: CallbackContext) -> None:
+    answer = update.poll_answer
+    answer_index = answer.option_ids[0] 
+    poll_id = answer.poll_id
+    chat_id = answer.user.id
+    url = f'http://127.0.0.1:5000/bot/get-poll-answer/'
+    data = {'user_id': chat_id,'poll_bot_id' : poll_id, 'answer_index' : answer_index} 
+    server_response = requests.post(url=url, data=data)
+    if server_response.status_code != 200:
+        send_message_to_bot(context, chat_id, f"ERROR: send poll answer failed due to internal error")
+  
 
 def init_bot():
     updater = Updater(token=TOKEN, use_context=True)
@@ -79,6 +93,10 @@ def init_bot():
     remove_handler = CommandHandler('remove', remove, run_async=True)
     dispatcher.add_handler(remove_handler)
 
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, no_command, run_async=True))
+
     dispatcher.add_handler(MessageHandler(Filters.command, unknown_command, run_async=True))
+
+    dispatcher.add_handler(PollAnswerHandler(receive_poll_answer))
 
     updater.start_polling()
