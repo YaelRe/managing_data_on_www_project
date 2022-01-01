@@ -5,8 +5,6 @@ import requests
 
 MAX_USER_NAME_LENGTH = 30
 TOKEN = '5015705357:AAGVtnC3_R809aHQLoRGWGAs8DA0iOle1n0'
-updater = Updater(token=TOKEN, use_context=True)
-dispatcher = updater.dispatcher
 def send_message_to_bot(context, chat_id, message):
     context.bot.send_message(chat_id=chat_id, text=message)
 
@@ -67,15 +65,20 @@ def unknown_command(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     send_message_to_bot(context, chat_id, "ERROR: sorry, I didn't understand this command. \n For a list of supported commands please use /start command")
 
-start_handler = CommandHandler('start', start, run_async=True)
-dispatcher.add_handler(start_handler)
 
-register_handler = CommandHandler('register', register, run_async=True)
-dispatcher.add_handler(register_handler)
 
-remove_handler = CommandHandler('remove', remove, run_async=True)
-dispatcher.add_handler(remove_handler)
+def init_bot():
+    updater = Updater(token=TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+    start_handler = CommandHandler('start', start, run_async=True)
+    dispatcher.add_handler(start_handler)
 
-dispatcher.add_handler(MessageHandler(Filters.command, unknown_command, run_async=True))
+    register_handler = CommandHandler('register', register, run_async=True)
+    dispatcher.add_handler(register_handler)
 
-updater.start_polling()
+    remove_handler = CommandHandler('remove', remove, run_async=True)
+    dispatcher.add_handler(remove_handler)
+
+    dispatcher.add_handler(MessageHandler(Filters.command, unknown_command, run_async=True))
+
+    updater.start_polling()

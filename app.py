@@ -1,5 +1,6 @@
 from flask import Flask, request, Response
 from flask_sqlalchemy import SQLAlchemy
+from bot_manager import init_bot
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost/postgres'
@@ -59,8 +60,9 @@ def remove_user():
 
 
 if __name__ == '__main__':
+    init_bot()
     app.run(debug=False, port=5000)
-    print("hi")
+    
     
 
 
