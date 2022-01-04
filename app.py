@@ -3,9 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from telegram import Bot
 from bot_manager import init_bot
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # TODO: create config file
 TOKEN = '5015705357:AAGVtnC3_R809aHQLoRGWGAs8DA0iOle1n0'
+HTTP_CODES = {200: 'OK', 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found',
+           409: 'Conflict', 500: 'Internal Server Error', 501: 'Not Implemented'}
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost/postgres'
@@ -24,7 +27,7 @@ class Users(db.Model):
 class Admins(db.Model):
     __tablename__ = 'admins'
     admin_name = db.Column(db.String(30), primary_key=True, nullable=False)
-    password = db.Column(db.String(32), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
 
 
 class Polls(db.Model):
@@ -61,6 +64,14 @@ def save_poll_in_db(poll_question: str):
     return poll_id
 
 
+def save_admin_in_db(admin_name: str, hashed_password: str):
+    try:
+        db.session.add(Admins(admin_name=admin_name, password=hashed_password))
+        db.session.commit()
+    except Exception as e:
+        raise e
+
+
 def save_answers_in_db(poll_id: int, poll_answers: list):
     for i in range(len(poll_answers)):
         try:    
@@ -69,8 +80,11 @@ def save_answers_in_db(poll_id: int, poll_answers: list):
         except Exception as e:
             raise e
     
+def get_admin_hashed_password(admin_name: str):
+    admin = Admins.query.filter_by(admin_name=admin_name).first()
+    return admin.password if admin is not None else None
 
-def get_http_response_error(exception):
+def get_bot_response_error(exception):
     if type(exception).__name__ == 'IntegrityError': # user_id already exists in DB (register command)
         return Response("IntegrityError", status=403, mimetype='plain/text')
     if type(exception).__name__ == 'UnmappedInstanceError': # user_id not exists in DB (remove command)
@@ -79,6 +93,34 @@ def get_http_response_error(exception):
         # TODO: consider change to html response (with text of - Internal server error), make sure we don't break the bot flow of this response
         return Response("caught undefined excption", status=500, mimetype='plain/text')
 
+
+def handle_http_error(exception, element_type: str):
+    if type(exception).__name__ == 'IntegrityError':  # element is already exists in DB
+        return get_http_response(status=400, html_body=f"{element_type} already exists in DB")
+    if type(exception).__name__ == 'UnmappedInstanceError':  # element not exists in DB
+        return get_http_response(status=400, html_body=f"{element_type} doesn't exists in DB")
+    else:
+        return get_http_response(status=500, html_body="Internal server error")
+
+
+def get_http_response(status: int, html_body: str):
+    text = f'''
+            <!DOCTYPE html>
+        <html>
+            <head>
+                <title> {status} : {HTTP_CODES[status]} </title>
+            </head>
+            <body> 
+                <h1> {HTTP_CODES[status]} </h1>
+                <p> {html_body} </p>
+            </body>
+        </html>
+    '''
+
+    return Response(response=text.encode('utf-8'), status=status,
+                    headers={"Content-Type": "text/html",
+                             "charset": "utf-8",
+                             "Connection": "close"})
 
 @app.route("/")
 def home():
@@ -96,7 +138,7 @@ def register_user():
         try:
             db.session.commit()
         except Exception as e:
-            return get_http_response_error(e)
+            return get_bot_response_error(e)
 
         return Response("successful request", status=200, mimetype='plain/text')
     else:
@@ -113,7 +155,7 @@ def remove_user():
             db.session.delete(user)
             db.session.commit()
         except Exception as e:
-            return get_http_response_error(e)
+            return get_bot_response_error(e)
         return Response("successful request", status=200, mimetype='plain/text')
     else:
         return Response("invalid request", status=500, mimetype='plain/text')
@@ -129,7 +171,7 @@ def send_poll_to_user():
         poll_id = save_poll_in_db(poll_question)
         save_answers_in_db(poll_id, poll_answers)
     except Exception as e:
-        return get_http_response_error(e)
+        return get_bot_response_error(e)
     chat_ids_list = [5026409462, 2062535378]  # TODO: create function that return list of relevant chat ids (filter chat ids if needed)
     bot = Bot(token=TOKEN)
 
@@ -160,15 +202,46 @@ def get_poll_answer():
     try:
         polls_answer_options = Polls_answer_options.query.filter_by(poll_id=poll_internal_id).all()
     except Exception as e:
-        return get_http_response_error(e)
+        return get_bot_response_error(e)
     answer = polls_answer_options[int(answer_index)].poll_answer_option
 
     try:
         db.session.add(Polls_users_answers(poll_id=poll_internal_id, user_id=user_id, user_answer=answer))
         db.session.commit()
     except Exception as e:
-        return get_http_response_error(e)
+        return get_bot_response_error(e)
     return Response("successful request", status=200, mimetype='plain/text')
+
+
+# TODO: change it to back POST
+@app.route("/admins/add-admin/", methods=['GET'])
+def add_new_admin():
+    # TODO: parsing admin_name and password
+    admin_name = "Lati"
+    password = "Lati2020!@"
+    hashed_password = generate_password_hash(password)
+    try:
+        save_admin_in_db(admin_name, hashed_password)
+    except Exception as e:
+        return handle_http_error(e, f"admin_name {admin_name}")
+
+    return get_http_response(status=200, html_body="admin added successfully")
+
+# TODO: change it to back POST
+@app.route("/admins/authorize-admin/", methods=['GET'])
+def authorize_admin():
+    # TODO: parsing admin_name and password
+    admin_name = "Lati"
+    password = "Lati2020!@"
+    hashed_password = get_admin_hashed_password(admin_name)
+    if hashed_password is None:
+        return get_http_response(status=400, html_body=f"admin {admin_name} doesn't exists in DB")
+
+    is_correct_password = check_password_hash(hashed_password, password)
+    if is_correct_password:
+        return get_http_response(status=200, html_body="valid admin, lets continue to home page")
+    else:
+        return get_http_response(status=400, html_body="password is incorrect")
 
 
 if __name__ == '__main__':
