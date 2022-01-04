@@ -13,16 +13,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 poll_id_mapper = {}
 
+
 class Users(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.BigInteger, primary_key=True, nullable=False)
     user_name = db.Column(db.String(30),  nullable=False)
     polls_users_answers = db.relationship('Polls_users_answers', backref='users', lazy=True)
 
+
 class Admins(db.Model):
     __tablename__ = 'admins'
     admin_name = db.Column(db.String(30), primary_key=True, nullable=False)
     password = db.Column(db.String(32), nullable=False)
+
 
 class Polls(db.Model):
     __tablename__ = 'polls'
@@ -31,10 +34,12 @@ class Polls(db.Model):
     polls_answer_options = db.relationship('Polls_answer_options', backref='polls1', lazy=True)
     polls_users_answers = db.relationship('Polls_answer_options', backref='polls2', lazy=True)
 
+
 class Polls_answer_options(db.Model):
     __tablename__ = 'polls_answer_options'
     poll_id = db.Column(db.BigInteger, db.ForeignKey('polls.poll_id'), primary_key=True, nullable=False )
     poll_answer_option = db.Column(db.String, primary_key=True, nullable=False)
+
 
 class Polls_users_answers(db.Model):
     __tablename__ = 'polls_users_answers'
@@ -43,7 +48,7 @@ class Polls_users_answers(db.Model):
     user_answer = db.Column(db.String, nullable=False)
     
 
-def save_poll_in_db(poll_question : str):
+def save_poll_in_db(poll_question: str):
     if db.session.query(Polls).first() is None:
         poll_id = 1
     else:
@@ -55,7 +60,8 @@ def save_poll_in_db(poll_question : str):
         raise e
     return poll_id
 
-def save_answers_in_db(poll_id : int, poll_answers : list):
+
+def save_answers_in_db(poll_id: int, poll_answers: list):
     for i in range(len(poll_answers)):
         try:    
             db.session.add(Polls_answer_options(poll_id=poll_id, poll_answer_option=poll_answers[i]))
@@ -64,22 +70,22 @@ def save_answers_in_db(poll_id : int, poll_answers : list):
             raise e
     
 
-
-
-def get_http_response_error(excption):
-    if type(excption).__name__ == 'IntegrityError': #user_id already exists in DB (register command)
+def get_http_response_error(exception):
+    if type(exception).__name__ == 'IntegrityError': # user_id already exists in DB (register command)
         return Response("IntegrityError", status=403, mimetype='plain/text')
-    if type(excption).__name__ == 'UnmappedInstanceError': #user_id not exists in DB (remove command)
+    if type(exception).__name__ == 'UnmappedInstanceError': # user_id not exists in DB (remove command)
         return Response("UnmappedInstanceError", status=403, mimetype='plain/text')
     else:
         # TODO: consider change to html response (with text of - Internal server error), make sure we don't break the bot flow of this response
         return Response("caught undefined excption", status=500, mimetype='plain/text')
 
+
 @app.route("/")
 def home():
     return "Hello, Flask!"
 
-@app.route("/register-user/", methods= ['POST'])
+
+@app.route("/register-user/", methods=['POST'])
 def register_user():
 
     user_id = request.form['user_id']
@@ -92,30 +98,31 @@ def register_user():
         except Exception as e:
             return get_http_response_error(e)
 
-        return Response("successful requset", status=200, mimetype='plain/text')
+        return Response("successful request", status=200, mimetype='plain/text')
     else:
-       return Response("invalid request", status=500, mimetype='plain/text') 
+        return Response("invalid request", status=500, mimetype='plain/text')
 
-@app.route("/remove-user/", methods= ['DELETE'])
+
+@app.route("/remove-user/", methods=['DELETE'])
 def remove_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
     if request.method == 'DELETE':
-        user  = Users.query.filter_by(user_id=user_id, user_name=user_name).first()
+        user = Users.query.filter_by(user_id=user_id, user_name=user_name).first()
         try:
             db.session.delete(user)
             db.session.commit()
         except Exception as e:
             return get_http_response_error(e)
-        return Response("successful requset", status=200, mimetype='plain/text')
+        return Response("successful request", status=200, mimetype='plain/text')
     else:
-       return Response("invalid request", status=500, mimetype='plain/text') 
+        return Response("invalid request", status=500, mimetype='plain/text')
 
 
 # TODO: change it to back POST
-@app.route("/admins/send-poll/", methods= ['GET'])
+@app.route("/admins/send-poll/", methods=['GET'])
 def send_poll_to_user():
-    # TODO: add parsering the post data(poll qustion and answers) 
+    # TODO: add parsing the post data(poll question and answers)
     poll_question = "Are you a student from the Technion?"
     poll_answers = ["Yes", "No"]
     try:
@@ -123,10 +130,10 @@ def send_poll_to_user():
         save_answers_in_db(poll_id, poll_answers)
     except Exception as e:
         return get_http_response_error(e)
-    chat_ids_list = [5026409462, 2062535378] # TODO: create function that return list of relevant chat ids (filter chat ids if needed)
+    chat_ids_list = [5026409462, 2062535378]  # TODO: create function that return list of relevant chat ids (filter chat ids if needed)
     bot = Bot(token=TOKEN)
 
-    #TODO: consider change send_poll to send message (ot just remove the 100% and view results in poll message)
+    # TODO: consider change send_poll to send message (ot just remove the 100% and view results in poll message)
     # TODO: make sure that send_poll can't raise errors 
     for i in range(len(chat_ids_list)):
         message = bot.send_poll(
@@ -139,9 +146,10 @@ def send_poll_to_user():
 
         poll_id_mapper[message.poll.id] = poll_id
     
-    return Response("successful requset", status=200, mimetype='text/html')
+    return Response("successful request", status=200, mimetype='text/html')
 
-@app.route("/bot/get-poll-answer/", methods= ['POST'])
+
+@app.route("/bot/get-poll-answer/", methods=['POST'])
 def get_poll_answer():
     user_id = request.form['user_id']
     poll_bot_id = request.form['poll_bot_id']
@@ -150,7 +158,7 @@ def get_poll_answer():
     poll_internal_id = poll_id_mapper[poll_bot_id]
     del poll_id_mapper[poll_bot_id]
     try:
-        polls_answer_options  = Polls_answer_options.query.filter_by(poll_id=poll_internal_id).all()
+        polls_answer_options = Polls_answer_options.query.filter_by(poll_id=poll_internal_id).all()
     except Exception as e:
         return get_http_response_error(e)
     answer = polls_answer_options[int(answer_index)].poll_answer_option
@@ -160,7 +168,8 @@ def get_poll_answer():
         db.session.commit()
     except Exception as e:
         return get_http_response_error(e)
-    return Response("successful requset", status=200, mimetype='plain/text')
+    return Response("successful request", status=200, mimetype='plain/text')
+
 
 if __name__ == '__main__':
     # db.drop_all()
