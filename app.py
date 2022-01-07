@@ -1,9 +1,12 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS, cross_origin
 from sqlalchemy.sql import func
 from telegram import Bot
+from werkzeug.wrappers import response
 from bot_manager import init_bot
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 # TODO: create config file
 TOKEN = '5015705357:AAGVtnC3_R809aHQLoRGWGAs8DA0iOle1n0'
@@ -227,21 +230,33 @@ def add_new_admin():
 
     return get_http_response(status=200, html_body="admin added successfully")
 
-# TODO: change it to back POST
-@app.route("/admins/authorize-admin/", methods=['GET'])
+def get_react_http_response(status_code: int, body):
+    response = make_response(jsonify(body), status_code,)
+    # response.status_code = status_code
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+@app.route("/admins/authorize-admin/", methods=['POST'])
+@cross_origin()
 def authorize_admin():
-    # TODO: parsing admin_name and password
-    admin_name = "Lati"
-    password = "Lati2020!@"
+    admin_name = request.json['adminName']
+    password = request.json['password']
     hashed_password = get_admin_hashed_password(admin_name)
     if hashed_password is None:
-        return get_http_response(status=400, html_body=f"admin {admin_name} doesn't exists in DB")
+        return get_react_http_response(status_code=400, body={"message": f"admin {admin_name} doesn't exists in DB"})
 
     is_correct_password = check_password_hash(hashed_password, password)
-    if is_correct_password:
-        return get_http_response(status=200, html_body="valid admin, lets continue to home page")
-    else:
-        return get_http_response(status=400, html_body="password is incorrect")
+    return get_react_http_response(status_code=200, body={"is_correct_password": is_correct_password})
+
+@app.route("/admins/http_test/", methods=['POST'])
+@cross_origin()
+def http_test():
+    user_name = request.json['userName']
+    password = request.json['password']
+
+    response = make_response(jsonify({"answer": "True"}), 200,)
+    response.headers["Content-Type"] = "application/json"
+    return response
 
 
 if __name__ == '__main__':

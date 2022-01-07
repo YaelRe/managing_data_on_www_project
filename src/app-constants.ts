@@ -1,0 +1,1 @@
+export const pages = ['Polls Results', 'Polls Managment','Admins Managment'];
