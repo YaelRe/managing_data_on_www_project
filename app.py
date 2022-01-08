@@ -106,6 +106,12 @@ def handle_http_error(exception, element_type: str):
         return get_http_response(status=500, html_body="Internal server error")
 
 
+def get_react_http_response(status_code: int, body):
+    react_response = make_response(jsonify(body), status_code,)
+    react_response.headers["Content-Type"] = "application/json"
+    return react_response
+
+
 def get_http_response(status: int, html_body: str):
     text = f'''
             <!DOCTYPE html>
@@ -163,18 +169,26 @@ def remove_user():
     else:
         return Response("invalid request", status=500, mimetype='plain/text')
 
+def get_question_and_answers(request):
+    poll_question = request.json['question']
+    poll_answers = [request.json['answer1'], request.json['answer2']]
+    if request.json['answer3'] != '':
+        poll_answers.append(request.json['answer3'])
+    if request.json['answer4'] != '':
+        poll_answers.append(request.json['answer4'])
+    return poll_question, poll_answers
 
-# TODO: change it to back POST
-@app.route("/admins/send-poll/", methods=['GET'])
+
+@app.route("/admins/send-poll/", methods=['POST'])
+@cross_origin()
 def send_poll_to_user():
-    # TODO: add parsing the post data(poll question and answers)
-    poll_question = "Are you a student from the Technion?"
-    poll_answers = ["Yes", "No"]
+    poll_question, poll_answers = get_question_and_answers(request)
+
     try:
         poll_id = save_poll_in_db(poll_question)
         save_answers_in_db(poll_id, poll_answers)
-    except Exception as e:
-        return get_bot_response_error(e)
+    except:
+        return get_react_http_response(status_code=500, body={"message": "Poll wasn't sent due to internal server error"})
     chat_ids_list = [5026409462, 2062535378]  # TODO: create function that return list of relevant chat ids (filter chat ids if needed)
     bot = Bot(token=TOKEN)
 
@@ -188,10 +202,9 @@ def send_poll_to_user():
             is_anonymous=False,
             allows_multiple_answers=False
         )
-
         poll_id_mapper[message.poll.id] = poll_id
-    
-    return Response("successful request", status=200, mimetype='text/html')
+
+    return get_react_http_response(status_code=200, body={"message": "Poll created and sent successfully"})
 
 
 @app.route("/bot/get-poll-answer/", methods=['POST'])
@@ -209,34 +222,44 @@ def get_poll_answer():
     answer = polls_answer_options[int(answer_index)].poll_answer_option
 
     try:
-        db.session.add(Polls_users_answers(poll_id=poll_internal_id, user_id=user_id, user_answer=answer))
+        db.session.add(Polls_users_answers(poll_id=poll_internal_id, user_id=int(user_id), user_answer=answer))
         db.session.commit()
     except Exception as e:
         return get_bot_response_error(e)
     return Response("successful request", status=200, mimetype='plain/text')
 
 
-# TODO: change it to back POST
-@app.route("/admins/add-admin/", methods=['GET'])
+@app.route("/admins/add-admin/", methods=['POST'])
+@cross_origin()
 def add_new_admin():
-    # TODO: parsing admin_name and password
-    admin_name = "Lati"
-    password = "Lati2020!@"
+    admin_name = request.json['adminName']
+    password = request.json['password']
     hashed_password = generate_password_hash(password)
     try:
         save_admin_in_db(admin_name, hashed_password)
     except Exception as e:
-        return handle_http_error(e, f"admin_name {admin_name}")
+        if type(e).__name__ == 'IntegrityError':
+            return get_react_http_response(status_code=400,
+                                           body={"message": f"admin {admin_name} already exists"})
+        return get_react_http_response(status_code=500, body={"message": "Admin wasn't added due to internal server error"})
+    return get_react_http_response(status_code=200, body={"message": "admin added successfully"})
 
-    return get_http_response(status=200, html_body="admin added successfully")
 
-def get_react_http_response(status_code: int, body):
-    response = make_response(jsonify(body), status_code,)
-    # response.status_code = status_code
-    response.headers["Content-Type"] = "application/json"
-    return response
+@app.route("/admins/get-admins-list", methods=['GET'])
+@cross_origin()
+def get_admins_list():
+    try:
+        admins = Admins.query.all()
+    except Exception as e:
+        return get_react_http_response(status_code=500,
+                                       body={"message": "Could not retrieve admins list due to internal server error"})
+    admins_list = []
+    for admin in admins:
+        admins_list.append(admin.admin_name)
+    return get_react_http_response(status_code=200, body={"admins_list": admins_list})
 
-@app.route("/admins/authorize-admin/", methods=['POST'])
+
+@app.route("/admins/check-admin-authorization/", methods=['POST'])
 @cross_origin()
 def authorize_admin():
     admin_name = request.json['adminName']
@@ -248,15 +271,6 @@ def authorize_admin():
     is_correct_password = check_password_hash(hashed_password, password)
     return get_react_http_response(status_code=200, body={"is_correct_password": is_correct_password})
 
-@app.route("/admins/http_test/", methods=['POST'])
-@cross_origin()
-def http_test():
-    user_name = request.json['userName']
-    password = request.json['password']
-
-    response = make_response(jsonify({"answer": "True"}), 200,)
-    response.headers["Content-Type"] = "application/json"
-    return response
 
 
 if __name__ == '__main__':

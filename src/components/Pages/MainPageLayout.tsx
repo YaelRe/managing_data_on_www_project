@@ -3,6 +3,8 @@ import '../../App.css';
 import { About } from './AboutPage/About';
 import { FAQ } from './FAQPage/FAQ';
 import { LogInPage } from './LogInPage';
+import { CreateNewPoll } from './CreateNewPoll';
+import { AddAdmin } from './AddAdmin';
 
 export interface MainPageLayoutProps {
     loggedIn: Boolean;
@@ -18,11 +20,11 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
     if(loggedIn){
         switch(page) {
             case 0:
-                return <About />
+                return <About />;
             case 1:
-                return <FAQ />
+                return <CreateNewPoll />;
             case 2:
-                return <FAQ />
+                return <AddAdmin />;
             default:
                 return null; // TODO: ......
         }
@@ -30,4 +32,4 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
         return < LogInPage setLoggedIn={setLoggedIn} />
     }
     
-}
+};

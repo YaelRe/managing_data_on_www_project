@@ -14,8 +14,9 @@ export const LogInPage: React.FC<LogInPageProps> = ({
     const [errorMessage, setErrorMessage] = React.useState<string>('');
 
     const checkAuthentication = async() => {
-        const adminName = currentAdminNameInput
-        const password = currentPasswordInput
+        setErrorMessage('');
+        const adminName = currentAdminNameInput;
+        const password = currentPasswordInput;
 
         const requestOptions = {
             method: 'POST',
@@ -26,13 +27,13 @@ export const LogInPage: React.FC<LogInPageProps> = ({
         let serverResponse;
         let parsedServerResponse;
         try {
-            serverResponse = await fetch(`http://127.0.0.1:5000/admins/authorize-admin/`, requestOptions);
+            serverResponse = await fetch(`http://127.0.0.1:5000/admins/check-admin-authorization/`, requestOptions);
             parsedServerResponse = await serverResponse.json();
         } catch(e) {
             console.error(e);
        }
   
-       setCurrentPasswordInput('')
+       setCurrentPasswordInput('');
        if (serverResponse && serverResponse.status === 400){
             setErrorMessage(parsedServerResponse["message"]);
        } else if (parsedServerResponse["is_correct_password"] === false){
@@ -40,19 +41,19 @@ export const LogInPage: React.FC<LogInPageProps> = ({
        } else{
             setLoggedIn(true)
        }
-    }
+    };
 
     const handleAdminNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // What is the problem with this approach? Read about debouncing.
         e.preventDefault();
         setCurrentAdminNameInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
-    }
+    };
 
     const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // What is the problem with this approach? Read about debouncing.
         e.preventDefault();
         setCurrentPasswordInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
-    }
+    };
 
     return (
         <> 
@@ -65,8 +66,8 @@ export const LogInPage: React.FC<LogInPageProps> = ({
                 <div className='submit-button'>
                     <button className="submit" onClick={checkAuthentication}>Submit</button>
                 </div>
-                {errorMessage && (<p className="error"> {errorMessage} </p>)}
+                {errorMessage && (<p className="error-message"> {errorMessage} </p>)}
             </div>
         </>
     );
-}
+};

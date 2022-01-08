@@ -1,3 +1,4 @@
+import React from 'react';
 import '../../App.css';
 import { Navbar } from './Navbar';
 
@@ -18,6 +19,6 @@ export const Header: React.FC<HeaderProps> = ({
            
         </div>
     )
-}
+};
 
 // <Navbar changePage={changePage}/>
