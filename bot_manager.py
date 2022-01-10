@@ -1,10 +1,10 @@
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters,  PollAnswerHandler
 from telegram import Update, ReplyKeyboardRemove
 import requests
-
+import config
 
 MAX_USER_NAME_LENGTH = 30
-TOKEN = '5015705357:AAGVtnC3_R809aHQLoRGWGAs8DA0iOle1n0'
+TOKEN = config.boot_key
 
 
 def send_message_to_bot(context, chat_id, message):
@@ -34,7 +34,7 @@ def register(update: Update, context: CallbackContext):
         if len(user_name) > MAX_USER_NAME_LENGTH:
             send_message_to_bot(context, chat_id, f"ERROR: user-name could not be longer than {MAX_USER_NAME_LENGTH}")
             return
-        url = f'http://127.0.0.1:5000/register-user/'
+        url = f'http://127.0.0.1:5000/bot/register-user/'
         data = {'user_id': chat_id,'user_name' : user_name} 
         server_response = requests.post(url=url, data=data)
         if server_response.status_code == 200:
@@ -55,7 +55,7 @@ def remove(update: Update, context: CallbackContext):
     else:
         user_name = str(context.args[0])
         chat_id = update.effective_chat.id
-        url = f'http://127.0.0.1:5000/remove-user/'
+        url = f'http://127.0.0.1:5000/bot/remove-user/'
         data = {'user_id': chat_id, 'user_name': user_name}
         server_response = requests.delete(url=url, data=data)
         if server_response.status_code == 200:

@@ -9,6 +9,7 @@ export const CreateNewPoll = () => {
     const [currentAnswer2Input, setCurrentAnswer2Input] = React.useState<string>('');
     const [currentAnswer3Input, setCurrentAnswer3Input] = React.useState<string>('');
     const [currentAnswer4Input, setCurrentAnswer4Input] = React.useState<string>('');
+    const [currentAnswersCounter, setCurrentAnswersCounter] = React.useState<number>(0);
     const [questionErrorMessage, setQuestionErrorMessage] = React.useState<string>('');
     const [answersErrorMessage, setAnswersErrorMessage] = React.useState<string>('');
     const [sentPollMessage, setSentPollMessage] = React.useState<string>('');
@@ -20,13 +21,11 @@ export const CreateNewPoll = () => {
             returnValue = false;
             setQuestionErrorMessage('poll question can not be empty');
         }
-        if (answer1 === '' || answer2 === ''){
+        if (currentAnswersCounter < 2){
             returnValue = false;
             setAnswersErrorMessage('poll must have at least 2 answers');
         }
         return returnValue;
-
-        // TODO: currently user can insert answers to input 3 & 4 but his poll will be rejected
     };
 
     const createPoll = async() => {
@@ -62,6 +61,7 @@ export const CreateNewPoll = () => {
        setCurrentAnswer2Input('');
        setCurrentAnswer3Input('');
        setCurrentAnswer4Input('');
+       setCurrentAnswersCounter(0);
 
        if (serverResponse && serverResponse.status === 500){
             setSentPollErrorMessage(parsedServerResponse["message"]);//...........
@@ -78,21 +78,34 @@ export const CreateNewPoll = () => {
     const handleAnswer1InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer1Input(e.target.value);
+        if(e.target.value != ''){
+            setCurrentAnswersCounter(currentAnswersCounter + 1);
+        }
     };
 
     const handleAnswer2InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer2Input(e.target.value);
-    };
+        if(e.target.value != '') {
+            setCurrentAnswersCounter(currentAnswersCounter + 1)
+        }
+    }
 
     const handleAnswer3InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer3Input(e.target.value);
-    };
+        if(e.target.value != '') {
+            setCurrentAnswersCounter(currentAnswersCounter + 1);
+        }
+    }
     const handleAnswer4InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer4Input(e.target.value);
-    };
+        if(e.target.value != '') {
+            setCurrentAnswersCounter(currentAnswersCounter + 1);
+        }
+    }
+
     return (
         <div className='new-poll-container'>
             <h2 className='new-poll-header'> create new poll </h2>
@@ -116,22 +129,5 @@ export const CreateNewPoll = () => {
             {sentPollMessage && (<p className="success-message"> {sentPollMessage} </p>)}
             {sentPollErrorMessage && (<p className="error-message"> {sentPollErrorMessage} </p>)}
             </div>
-
-
-        </div>
-
-
-          //
-          //
-          // <div className='login-form-container'>
-          //       <p className="login-text">Admin Name</p>
-          //       <input className="text" value={currentAdminNameInput} onChange={handleAdminNameInputChange} />
-          //       <p className="login-text">Password</p>
-          //       <input className="password" type="password" value={currentPasswordInput} onChange={handlePasswordInputChange} />
-          //       <div className='submit-button'>
-          //           <button className="submit" onClick={checkAuthentication}>Submit</button>
-          //       </div>
-          //       {errorMessage && (<p className="error"> {errorMessage} </p>)}
-          //   </div>
-    )
+        </div>)
 };
