@@ -13,12 +13,10 @@ function App() {
   }
   return (
     <div className="root">
-      <Header changePage={changePage} loggedIn={loggedIn}/>
+      <Header changePage={changePage} loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
       <MainPageLayout loggedIn={loggedIn} setLoggedIn={setLoggedIn} page={page}/>
     </div>
   );
 }
 
 export default App;
-
-//<PageLayout page={page} characters={characters} setCharacters={setCharacters} />

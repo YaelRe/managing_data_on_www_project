@@ -9,9 +9,8 @@ from utils import get_bot_response_error, get_react_http_response, get_new_poll_
 import config
 
 # TODO - nice to have:
-# log out
 # filter according to several polls
-# authotize (cant use url without login) from tutorial presentation flask
+# authorize (cant use url without login) from tutorial presentation flask
 
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
