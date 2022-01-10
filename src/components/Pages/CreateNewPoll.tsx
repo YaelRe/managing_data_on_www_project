@@ -38,6 +38,10 @@ export const CreateNewPoll = () => {
         const answer2 = currentAnswer2Input;
         const answer3 = currentAnswer3Input;
         const answer4 = currentAnswer4Input;
+        const poll_id_to_filter_by = null;
+        const answers_to_filter_by = null;
+        const to_filter = false;
+
 
         if (!isPollValid(question, answer1, answer2)){
             return;
@@ -45,7 +49,8 @@ export const CreateNewPoll = () => {
         const requestData = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, answer1, answer2, answer3, answer4 })
+            body: JSON.stringify({ question, answer1, answer2, answer3, answer4,
+                poll_id_to_filter_by, answers_to_filter_by ,to_filter})
         };
 
         let serverResponse;
@@ -78,7 +83,7 @@ export const CreateNewPoll = () => {
     const handleAnswer1InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer1Input(e.target.value);
-        if(e.target.value != ''){
+        if(e.target.value !== ''){
             setCurrentAnswersCounter(currentAnswersCounter + 1);
         }
     };
@@ -86,7 +91,7 @@ export const CreateNewPoll = () => {
     const handleAnswer2InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer2Input(e.target.value);
-        if(e.target.value != '') {
+        if(e.target.value !== '') {
             setCurrentAnswersCounter(currentAnswersCounter + 1)
         }
     }
@@ -94,14 +99,14 @@ export const CreateNewPoll = () => {
     const handleAnswer3InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer3Input(e.target.value);
-        if(e.target.value != '') {
+        if(e.target.value !== '') {
             setCurrentAnswersCounter(currentAnswersCounter + 1);
         }
     }
     const handleAnswer4InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer4Input(e.target.value);
-        if(e.target.value != '') {
+        if(e.target.value !== '') {
             setCurrentAnswersCounter(currentAnswersCounter + 1);
         }
     }

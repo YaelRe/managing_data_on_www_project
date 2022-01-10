@@ -5,8 +5,15 @@ from sqlalchemy.sql import func
 from telegram import Bot
 from bot_manager import init_bot
 from werkzeug.security import generate_password_hash, check_password_hash
-from utils import get_bot_response_error, get_react_http_response, get_question_and_answers
+from utils import get_bot_response_error, get_react_http_response, get_new_poll_data_and_filter_data
 import config
+
+# TODO - nice to have:
+# log out
+# filter according to several polls
+# authotize (cant use url without login) from tutorial presentation flask
+
+# send all answer for a poll as dict
 
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
@@ -21,9 +28,7 @@ poll_id_mapper = {}
 class Users(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.BigInteger, primary_key=True, nullable=False)
-    user_name = db.Column(db.String(30), nullable=False)
-    polls_users_answers = db.relationship('Polls_users_answers', backref='users', lazy=True)
-
+    user_name = db.Column(db.String(30), nullable=True)
 
 class Admins(db.Model):
     __tablename__ = 'admins'
@@ -35,8 +40,6 @@ class Polls(db.Model):
     __tablename__ = 'polls'
     poll_id = db.Column(db.BigInteger, primary_key=True, nullable=False)
     question = db.Column(db.String, nullable=False)
-    polls_answer_options = db.relationship('Polls_answer_options', backref='polls1', lazy=True)
-    polls_users_answers = db.relationship('Polls_answer_options', backref='polls2', lazy=True)
 
 
 class Polls_answer_options(db.Model):
@@ -86,16 +89,44 @@ def get_admin_hashed_password(admin_name: str):
     admin = Admins.query.filter_by(admin_name=admin_name).first()
     return admin.password if admin is not None else None
 
+def get_user_ids(poll_id_to_filter_by, answers_to_filter_by, to_filter):
+    all_user_ids_registered = []
+    users_ids_filtered_and_registered = []
+    try:
+        users = Users.query.filter(Users.user_name != None).all()  # find all registered users
+    except Exception as e:
+        raise e
+    for user in users:
+        all_user_ids_registered.append(user.user_id)
+    if not to_filter:
+        return all_user_ids_registered
+    else:
+        filtered_user = []
+        for answer in answers_to_filter_by: #TODO make sure it is sent as a list from react!!
+            try:
+                filtered_user.append(Polls_users_answers.query.filter_by(poll_id=poll_id_to_filter_by, user_answer=answer).all())
+            except Exception as e:
+                raise e
+        all_filtered_users = [users for sublist in filtered_user for users in sublist]
+        for user in all_filtered_users:  # check for each filtered user if it is registered
+            if user.user_id in all_user_ids_registered:
+                users_ids_filtered_and_registered.append(user.user_id)
+        return users_ids_filtered_and_registered
+
 
 @app.route("/bot/register-user/", methods=['POST'])
 def register_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
-
     if request.method == 'POST':
-        db.session.add(Users(user_id=user_id, user_name=user_name))
         try:
-            db.session.commit()
+            user = Users.query.filter_by(user_id=user_id).first()
+            if user is None:
+                db.session.add(Users(user_id=user_id, user_name=user_name))
+                db.session.commit()
+            else:  # user exists but with None as user_name (de - registered before)
+                user.user_name = user_name
+                db.session.commit()
         except Exception as e:
             return get_bot_response_error(e)
 
@@ -104,7 +135,6 @@ def register_user():
         return Response("invalid request", status=500, mimetype='plain/text')
 
 
-# TODO BUG - delete user after answering is a problem (keys..)
 @app.route("/bot/remove-user/", methods=['DELETE'])
 def remove_user():
     user_id = request.form['user_id']
@@ -112,7 +142,7 @@ def remove_user():
     if request.method == 'DELETE':
         user = Users.query.filter_by(user_id=user_id, user_name=user_name).first()
         try:
-            db.session.delete(user)
+            user.user_name = None  #dont delete user just change his name to None (as if it was deleted)
             db.session.commit()
         except Exception as e:
             return get_bot_response_error(e)
@@ -146,13 +176,13 @@ def get_poll_answer():
 @app.route("/admins/send-poll/", methods=['POST'])
 @cross_origin()
 def send_poll_to_user():
-    poll_question, poll_answers = get_question_and_answers(request)
+    poll_question, poll_answers, poll_id_to_filter_by, answers_to_filter_by, to_filter = get_new_poll_data_and_filter_data(request)
     try:
         poll_id = save_poll_in_db(poll_question)
         save_answers_in_db(poll_id, poll_answers)
+        chat_ids_list = get_user_ids(poll_id_to_filter_by, answers_to_filter_by, to_filter)
     except:
         return get_react_http_response(status_code=500, body={"message": "Poll wasn't sent due to internal server error"})
-    chat_ids_list = [5026409462, 2062535378]  # TODO: create function that return list of relevant chat ids (filter chat ids if needed)
     bot = Bot(token=TOKEN)
 
     # TODO: consider change send_poll to send message (ot just remove the 100% and view results in poll message)
@@ -241,10 +271,10 @@ def get_poll_answers(poll_id):
     return get_react_http_response(status_code=200, body={"polls_list": poll_answers})
 
 
-if __name__ == '__main__':
-    # db.drop_all()
-    # db.create_all()
-    # hashed_password = generate_password_hash(config.initial_password)
-    # save_admin_in_db(config.initial_admin_name, hashed_password)
+def run_project():
+    #db.drop_all()
+    #db.create_all()
+    #hashed_password = generate_password_hash(config.initial_password)
+    #save_admin_in_db(config.initial_admin_name, hashed_password)
     init_bot()
     app.run(port=config.server_port)

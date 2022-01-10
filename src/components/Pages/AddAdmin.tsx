@@ -1,6 +1,5 @@
 import '../../App.css';
 import React from "react";
-import {Character} from "../../types";
 import {AdminLine} from "../AdminLine";
 
 

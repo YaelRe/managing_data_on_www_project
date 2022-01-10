@@ -1,7 +1,6 @@
 from flask import Response, jsonify, make_response
 from config import http_codes
 
-
 def get_bot_response_error(exception):
     if type(exception).__name__ == 'IntegrityError': # user_id already exists in DB (register command)
         return Response("IntegrityError", status=403, mimetype='plain/text')
@@ -20,18 +19,21 @@ def handle_http_error(exception, element_type: str):
         return get_http_response(status=500, html_body="Internal server error")
 
 
-def get_question_and_answers(request):
-    poll_question = request.json['question']
-    poll_answers = [request.json['answer1'], request.json['answer2'], request.json['answer3'], request.json['answer4']]
-    while "" in poll_answers:
-        poll_answers.remove("")
-    return poll_question, poll_answers
-
-
 def get_react_http_response(status_code: int, body):
     react_response = make_response(jsonify(body), status_code,)
     react_response.headers["Content-Type"] = "application/json"
     return react_response
+
+
+def get_new_poll_data_and_filter_data(request):
+    poll_question = request.json['question']
+    new_poll_answers = [request.json['answer1'], request.json['answer2'], request.json['answer3'], request.json['answer4']]
+    while "" in new_poll_answers:
+        new_poll_answers.remove("")
+    poll_id_to_filter_by = request.json['poll_id_to_filter_by']
+    answers_to_filter_by = request.json['answers_to_filter_by']
+    to_filter = request.json['to_filter']
+    return poll_question, new_poll_answers, poll_id_to_filter_by, answers_to_filter_by, to_filter
 
 
 def get_http_response(status: int, html_body: str):
