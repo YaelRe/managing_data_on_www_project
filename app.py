@@ -13,8 +13,6 @@ import config
 # filter according to several polls
 # authotize (cant use url without login) from tutorial presentation flask
 
-# send all answer for a poll as dict
-
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
 
