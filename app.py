@@ -270,6 +270,28 @@ def get_poll_answers(poll_id):
         poll_answers.append(poll_answer.poll_answer_option)
     return get_react_http_response(status_code=200, body={"polls_list": poll_answers})
 
+@app.route("/admins/get-poll-user-answers/<poll_id>", methods=['GET'])
+@cross_origin()
+def get_poll_user_answers(poll_id):
+    try:
+        poll_answers_list = Polls_answer_options.query.filter_by(poll_id=poll_id).all()
+    except Exception as e:
+        return get_react_http_response(status_code=500,
+                                       body={"message": "Could not retrieve Poll answer due to internal server error"})
+    poll_answers = []
+    poll_user_answer_counters = {}
+    for poll_answer in poll_answers_list:
+        poll_answers.append(poll_answer.poll_answer_option)
+        poll_user_answer_counters[poll_answer.poll_answer_option] = 0
+
+    try:
+        poll_users_answers_list = Polls_users_answers.query.filter_by(poll_id=poll_id).all()
+    except Exception as e:
+        return get_react_http_response(status_code=500,
+                                       body={"message": "Could not retrieve Poll users answers due to internal server error"})
+    for poll_user_answer in poll_users_answers_list:
+        poll_user_answer_counters[poll_user_answer.user_answer] += 1
+    return get_react_http_response(status_code=200, body={"poll_users_answers": poll_user_answer_counters})
 
 def run_project():
     #db.drop_all()
