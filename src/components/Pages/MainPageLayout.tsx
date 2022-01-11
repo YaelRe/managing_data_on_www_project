@@ -1,8 +1,9 @@
 import React from 'react';
 import '../../App.css';
 import { LogInPage } from './LogInPage';
-import { CreateNewPoll } from './CreateNewPoll';
 import { AddAdmin } from './AddAdmin';
+import {CreateFilteredPoll} from "./CreateFilteredPoll";
+import {CreateRegularPoll} from "./CreateRegularPoll";
 
 export interface MainPageLayoutProps {
     loggedIn: Boolean;
@@ -15,13 +16,21 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
     page,
 }) => {
 
+    const [selectedPollId, setSelectedPollId] = React.useState<number>(-1);
+    const [filteredAnswersList, setFilteredAnswersList] = React.useState<string[]>([]);
+    const [isFiltered, setIsFiltered] = React.useState<Boolean>(false);
+
     if(loggedIn){
         switch(page) {
             case 0:
                 return <AddAdmin />;
             case 1:
-                return <CreateNewPoll />;
+                return <CreateRegularPoll isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
             case 2:
+                return <CreateFilteredPoll selectedPollId={selectedPollId} setSelectedPollId={setSelectedPollId}
+                                           filteredAnswersList={filteredAnswersList} setFilteredAnswersList={setFilteredAnswersList}
+                                           isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
+            case 3:
                 return <AddAdmin />;
             default:
                 return null; // TODO: ......

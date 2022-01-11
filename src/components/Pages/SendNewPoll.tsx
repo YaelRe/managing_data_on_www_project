@@ -1,8 +1,17 @@
 import React from 'react';
 import '../../App.css';
 
+export interface SendNewPollProps {
+    isFiltered: Boolean;
+    selectedPollId: number;
+    filteredAnswersList: string[];
+}
 
-export const CreateNewPoll = () => {
+export const SendNewPoll : React.FC<SendNewPollProps> = ({
+    isFiltered,
+    selectedPollId,
+    filteredAnswersList,
+}) => {
 
     const [currentQuestionInput, setCurrentQuestionInput] = React.useState<string>('');
     const [currentAnswer1Input, setCurrentAnswer1Input] = React.useState<string>('');
@@ -12,6 +21,8 @@ export const CreateNewPoll = () => {
     const [currentAnswersCounter, setCurrentAnswersCounter] = React.useState<number>(0);
     const [questionErrorMessage, setQuestionErrorMessage] = React.useState<string>('');
     const [answersErrorMessage, setAnswersErrorMessage] = React.useState<string>('');
+    const [unselectedPollErrorMessage, setUnselectedPollErrorMessage] = React.useState<string>('');
+    const [unselectedAnswersErrorMessage, setUnselectedAnswersErrorMessage] = React.useState<string>('');
     const [sentPollMessage, setSentPollMessage] = React.useState<string>('');
     const [sentPollErrorMessage, setSentPollErrorMessage] = React.useState<string>('');
 
@@ -25,22 +36,35 @@ export const CreateNewPoll = () => {
             returnValue = false;
             setAnswersErrorMessage('poll must have at least 2 answers');
         }
+        if (isFiltered){
+            if (selectedPollId === -1){
+                returnValue = false;
+                setUnselectedPollErrorMessage("you didn't choose a poll to filter by")
+            }
+            if (filteredAnswersList.length === 0){
+                returnValue = false;
+                setUnselectedAnswersErrorMessage("you need to choose at least one answer to filter by")
+            }
+        }
         return returnValue;
     };
 
     const createPoll = async() => {
         setQuestionErrorMessage('');
         setAnswersErrorMessage('');
+        setUnselectedPollErrorMessage('');
+        setUnselectedAnswersErrorMessage('');
         setSentPollErrorMessage('');
         setSentPollMessage('');
+        setCurrentAnswersCounter(0);
         const question = currentQuestionInput;
         const answer1 = currentAnswer1Input;
         const answer2 = currentAnswer2Input;
         const answer3 = currentAnswer3Input;
         const answer4 = currentAnswer4Input;
-        const poll_id_to_filter_by = null;
-        const answers_to_filter_by = null;
-        const to_filter = false;
+        const poll_id_to_filter_by = selectedPollId;
+        const answers_to_filter_by = filteredAnswersList;
+        const to_filter = isFiltered;
 
 
         if (!isPollValid(question, answer1, answer2)){
@@ -129,6 +153,12 @@ export const CreateNewPoll = () => {
             </div>
             <div>
             {answersErrorMessage && (<p className="error-message"> {answersErrorMessage} </p>)}
+            </div>
+            <div>
+            {unselectedPollErrorMessage && (<p className="error-message"> {unselectedPollErrorMessage} </p>)}
+            </div>
+            <div>
+            {unselectedAnswersErrorMessage && (<p className="error-message"> {unselectedAnswersErrorMessage} </p>)}
             </div>
             <div>
             {sentPollMessage && (<p className="success-message"> {sentPollMessage} </p>)}

@@ -13,11 +13,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             case 'Polls Results':
                 changePage(0);
                 break;
-            case 'Polls Managment':
+            case 'Send new poll':
                 changePage(1);
                 break;
-            case 'Admins Managment':
+            case 'Send new filtered poll':
                 changePage(2);
+                break;
+            case 'Admins Managment':
+                changePage(3);
                 break;
             default:
                 break;

@@ -2,8 +2,6 @@ import '../../App.css';
 import React from "react";
 import {AdminLine} from "../AdminLine";
 
-
-
 export const AddAdmin = () => {
 
     const [currentAdminNameInput, setCurrentAdminNameInput] = React.useState<string>('');

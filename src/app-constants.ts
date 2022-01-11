@@ -1,1 +1,1 @@
-export const pages = ['Polls Results', 'Polls Managment','Admins Managment'];
+export const pages = ['Polls Results', 'Send new poll', 'Send new filtered poll','Admins Managment'];

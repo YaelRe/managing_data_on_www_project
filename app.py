@@ -265,7 +265,7 @@ def get_poll_answers(poll_id):
     poll_answers = []
     for poll_answer in poll_answers_list:
         poll_answers.append(poll_answer.poll_answer_option)
-    return get_react_http_response(status_code=200, body={"polls_list": poll_answers})
+    return get_react_http_response(status_code=200, body={"polls_answers_list": poll_answers})
 
 @app.route("/admins/get-poll-user-answers/<poll_id>", methods=['GET'])
 @cross_origin()
@@ -291,9 +291,9 @@ def get_poll_user_answers(poll_id):
     return get_react_http_response(status_code=200, body={"poll_users_answers": poll_user_answer_counters})
 
 def run_project():
-    #db.drop_all()
-    #db.create_all()
-    #hashed_password = generate_password_hash(config.initial_password)
-    #save_admin_in_db(config.initial_admin_name, hashed_password)
+    # db.drop_all()
+    # db.create_all()
+    # hashed_password = generate_password_hash(config.initial_password)
+    # save_admin_in_db(config.initial_admin_name, hashed_password)
     init_bot()
     app.run(port=config.server_port)
