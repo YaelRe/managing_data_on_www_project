@@ -3,10 +3,14 @@ import '../../App.css';
 
 export interface LogInPageProps {
     setLoggedIn: React.Dispatch<React.SetStateAction<Boolean>>;
+    setAdminName : React.Dispatch<React.SetStateAction<string>>;
+    setAdminsPassword : React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const LogInPage: React.FC<LogInPageProps> = ({
     setLoggedIn,
+    setAdminName,
+    setAdminsPassword,
 }) => {
 
     const [currentAdminNameInput, setCurrentAdminNameInput] = React.useState<string>('');
@@ -33,13 +37,18 @@ export const LogInPage: React.FC<LogInPageProps> = ({
             console.error(e);
        }
   
-       setCurrentPasswordInput('');
+
        if (serverResponse && serverResponse.status === 400){
             setErrorMessage(parsedServerResponse["message"]);
+            setCurrentPasswordInput('');
        } else if (parsedServerResponse["is_correct_password"] === false){
             setErrorMessage('password is incorrect!');
+            setCurrentPasswordInput('');
        } else{
-            setLoggedIn(true)
+           setLoggedIn(true)
+           setAdminName(currentAdminNameInput)
+           setAdminsPassword(currentPasswordInput)
+           setCurrentPasswordInput('');
        }
     };
 

@@ -10,6 +10,8 @@ export interface CreateFilteredPollProps {
     setSelectedPollId: React.Dispatch<React.SetStateAction<number>>;
     setFilteredAnswersList: React.Dispatch<React.SetStateAction<string[]>>;
     filteredAnswersList: string[];
+    adminName: string;
+    adminsPassword: string;
 }
 
 export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
@@ -18,7 +20,9 @@ export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
     setIsFiltered,
     setSelectedPollId,
     setFilteredAnswersList,
-    filteredAnswersList
+    filteredAnswersList,
+    adminName,
+    adminsPassword,
 }) => {
 
     setIsFiltered(true);
@@ -26,10 +30,12 @@ export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
     return (
         <div className='create-filtered-poll-container'>
             <div>
-            <FilteredPolls setSelectedPollId={setSelectedPollId} setFilteredAnswersList={setFilteredAnswersList}/>
+            <FilteredPolls setSelectedPollId={setSelectedPollId} setFilteredAnswersList={setFilteredAnswersList}
+                            adminName={adminName} adminsPassword={adminsPassword}/>
             </div>
             <div>
-            <SendNewPoll isFiltered={isFiltered} selectedPollId={selectedPollId} filteredAnswersList={filteredAnswersList} />
+            <SendNewPoll isFiltered={isFiltered} selectedPollId={selectedPollId} filteredAnswersList={filteredAnswersList}
+                            adminName={adminName} adminsPassword={adminsPassword}/>
             </div>
         </div>
     )

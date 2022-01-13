@@ -10,7 +10,7 @@ export interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
     changePage,
     setLoggedIn,
-    loggedIn
+    loggedIn,
 }) => {
 
     const HandleLogOutClick = () => {

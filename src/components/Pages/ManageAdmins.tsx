@@ -1,15 +1,22 @@
 import '../../App.css';
 import React from "react";
 import {AdminLine} from "../AdminLine";
+import {Buffer} from "buffer";
 
-export const ManageAdmins = () => {
+export interface ManageAdminsProps {
+    adminName: string;
+    adminsPassword: string;
+}
+export const ManageAdmins : React.FC<ManageAdminsProps> = ({
+    adminName,
+    adminsPassword,
+}) => {
 
     const [currentAdminNameInput, setCurrentAdminNameInput] = React.useState<string>('');
     const [currentPasswordInput, setCurrentPasswordInput] = React.useState<string>('');
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const [successMessage, setSuccessMessage] = React.useState<string>('');
     const [admins, setAdmins] = React.useState<string[]>([]);
-    // const [ fetchingData, setFetchingData ] = React.useState(true);
 
     React.useEffect(() => {
 
@@ -17,13 +24,16 @@ export const ManageAdmins = () => {
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-admins-list`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-admins-list`
+                ,{headers: new Headers({
+                            'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                    }
+                );
                 parsedServerResponse = await serverResponse.json();
-                // setFetchingData(false)
-
             } catch (error) {
                 console.log(error);
             }
+            // TODO: handle 500/401? status (empty list, internal error)
 
             if (serverResponse && serverResponse.status === 200 && parsedServerResponse["admins_list"].length !== 0){
                 const temp_list = parsedServerResponse["admins_list"];
@@ -31,7 +41,6 @@ export const ManageAdmins = () => {
             }
         };
 
-        // We acticed the async function
         fetchAdminsData();
 
     }, []);
@@ -39,18 +48,19 @@ export const ManageAdmins = () => {
     const addAdminHandler = async() => {
         setErrorMessage('');
         setSuccessMessage('');
-        const adminName = currentAdminNameInput;
-        const password = currentPasswordInput;
+        const newAdminName = currentAdminNameInput;
+        const newPassword = currentPasswordInput;
 
-        if (password === ''){
+        if (newPassword === ''){
             setErrorMessage("password can not be empty");
             return;
         }
 
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminName, password })
+            headers: { 'Content-Type': 'application/json' , 'Authorization': 'Basic ' +
+                    Buffer.from(`${adminName}:${adminsPassword}`).toString('base64')},
+            body: JSON.stringify({ adminName: newAdminName, password: newPassword })
         };
 
         let serverResponse;
@@ -63,7 +73,7 @@ export const ManageAdmins = () => {
        }
 
        if (serverResponse && serverResponse.status === 200){
-            const newAdminsList = [...admins, adminName];
+            const newAdminsList = [...admins, newAdminName];
             setAdmins(newAdminsList);
             setSuccessMessage(parsedServerResponse["message"]);
        } else {
@@ -74,15 +84,13 @@ export const ManageAdmins = () => {
     };
 
     const handleAdminNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // What is the problem with this approach? Read about debouncing.
         e.preventDefault();
-        setCurrentAdminNameInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
+        setCurrentAdminNameInput(e.target.value);
     };
 
     const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // What is the problem with this approach? Read about debouncing.
         e.preventDefault();
-        setCurrentPasswordInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
+        setCurrentPasswordInput(e.target.value);
     };
 
     return (
@@ -101,7 +109,7 @@ export const ManageAdmins = () => {
             </div>
             <div className='admins-container'>
                 <h2>Admins list </h2>
-            {/*    change ket to better key*/}
+            {/*    change key to better key*/}
             {   admins.length > 0 ?
                     admins.map(admin =>
                     <AdminLine key={Math.random()} admin={admin}/>) :

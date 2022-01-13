@@ -1,16 +1,21 @@
 import React from 'react';
 import '../../App.css';
+import {Buffer} from "buffer";
 
 export interface SendNewPollProps {
     isFiltered: Boolean;
     selectedPollId: number;
     filteredAnswersList: string[];
+    adminName: string;
+    adminsPassword: string;
 }
 
 export const SendNewPoll : React.FC<SendNewPollProps> = ({
     isFiltered,
     selectedPollId,
     filteredAnswersList,
+    adminName,
+    adminsPassword,
 }) => {
 
     const [currentQuestionInput, setCurrentQuestionInput] = React.useState<string>('');
@@ -72,7 +77,8 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
         }
         const requestData = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' , 'Authorization': 'Basic ' +
+                    Buffer.from(`${adminName}:${adminsPassword}`).toString('base64')},
             body: JSON.stringify({ question, answer1, answer2, answer3, answer4,
                 poll_id_to_filter_by, answers_to_filter_by ,to_filter})
         };
@@ -93,7 +99,8 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
        setCurrentAnswersCounter(0);
 
        if (serverResponse && serverResponse.status === 500){
-            setSentPollErrorMessage(parsedServerResponse["message"]);//...........
+            setSentPollErrorMessage(parsedServerResponse["message"]); // TODO: handle 500/401? status (empty list, internal error)
+
        } else {
            setSentPollMessage("Poll was sent successfully")
        }
