@@ -1,9 +1,10 @@
 import React from 'react';
 import '../../App.css';
 import { LogInPage } from './LogInPage';
-import { AddAdmin } from './AddAdmin';
+import { ManageAdmins } from './ManageAdmins';
 import {CreateFilteredPoll} from "./CreateFilteredPoll";
 import {CreateRegularPoll} from "./CreateRegularPoll";
+import {PollResults} from "./PollResults";
 
 export interface MainPageLayoutProps {
     loggedIn: Boolean;
@@ -23,7 +24,7 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
     if(loggedIn){
         switch(page) {
             case 0:
-                return <AddAdmin />;
+                return < PollResults />;
             case 1:
                 return <CreateRegularPoll isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
             case 2:
@@ -31,7 +32,7 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
                                            filteredAnswersList={filteredAnswersList} setFilteredAnswersList={setFilteredAnswersList}
                                            isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
             case 3:
-                return <AddAdmin />;
+                return <ManageAdmins />;
             default:
                 return null; // TODO: ......
         }

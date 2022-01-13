@@ -2,7 +2,7 @@ import '../../App.css';
 import React from "react";
 import {AdminLine} from "../AdminLine";
 
-export const AddAdmin = () => {
+export const ManageAdmins = () => {
 
     const [currentAdminNameInput, setCurrentAdminNameInput] = React.useState<string>('');
     const [currentPasswordInput, setCurrentPasswordInput] = React.useState<string>('');

@@ -24,7 +24,7 @@ export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
     setIsFiltered(true);
 
     return (
-        <div className='header-container'>
+        <div className='create-filtered-poll-container'>
             <div>
             <FilteredPolls setSelectedPollId={setSelectedPollId} setFilteredAnswersList={setFilteredAnswersList}/>
             </div>
