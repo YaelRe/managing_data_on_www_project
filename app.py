@@ -127,6 +127,12 @@ def verify_password(admin_name, password):
 def register_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     if request.method == 'POST':
         try:
             user = Users.query.filter_by(user_id=user_id).first()
@@ -148,24 +154,39 @@ def register_user():
 def remove_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     if request.method == 'DELETE':
         user = Users.query.filter_by(user_id=user_id, user_name=user_name).first()
         try:
-            user.user_name = None  #dont delete user just change his name to None (as if it was deleted)
-            db.session.commit()
+            if user is not None:
+                user.user_name = None  #dont delete user just change his name to None (as if it was deleted)
+                db.session.commit()
         except Exception as e:
             return get_bot_response_error(e)
-        return Response("successful request", status=200, mimetype='plain/text')
+        if user is not None:
+            return Response("successful request", status=200, mimetype='plain/text')
+        else:
+            return Response("user doesnt exist", status=403, mimetype='plain/text')
     else:
         return Response("invalid request", status=500, mimetype='plain/text')
 
 
 @app.route("/bot/get-poll-answer/", methods=['POST'])
 def get_poll_answer():
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     user_id = request.form['user_id']
     poll_bot_id = request.form['poll_bot_id']
     answer_index = request.form['answer_index']
-
     poll_internal_id = poll_id_mapper[poll_bot_id]
     del poll_id_mapper[poll_bot_id]
     try:
