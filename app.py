@@ -11,7 +11,6 @@ import config
 
 # TODO - nice to have:
 # filter according to several polls
-# authorize (cant use url without login) from tutorial presentation flask
 
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
