@@ -7,8 +7,15 @@ import am4themes_animated from "@amcharts/amcharts5/themes/animated";
 import {ChartsComponent} from "../ChartsComponent";
 
 // am5.useTheme(am4themes_animated);
+export interface PollResultsProps {
+    adminName: string;
+    adminsPassword: string;
+}
 
-export const PollResults = () => {
+export const PollResults : React.FC<PollResultsProps> = ({
+    adminName,
+    adminsPassword,
+}) => {
 
     const [pollsListOptions, setPollsListOptions] = React.useState<any[]>([]);
     const [pollAnswersList, setPollAnswersList] = React.useState<any[]>([]);

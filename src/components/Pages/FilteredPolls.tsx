@@ -2,15 +2,21 @@ import '../../App.css';
 import React from "react";
 import { Poll } from '../../types';
 import Select, {MultiValue, SingleValue} from 'react-select'
+import {Buffer} from "buffer";
 
 export interface FilteredPollsProps {
     setSelectedPollId: React.Dispatch<React.SetStateAction<number>>;
     setFilteredAnswersList: React.Dispatch<React.SetStateAction<string[]>>;
+    adminName: string;
+    adminsPassword: string;
+
 }
 
 export const FilteredPolls : React.FC<FilteredPollsProps> = ({
     setSelectedPollId,
     setFilteredAnswersList,
+    adminName,
+    adminsPassword,
 }) => {
 
     const [pollsList, setPollsList] = React.useState<Poll[]>([]);
@@ -26,9 +32,12 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-polls-list`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-polls-list`,
+                    {headers: new Headers({
+                            'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                    }
+                );
                 parsedServerResponse = await serverResponse.json();
-                // setFetchingData(false)
 
             } catch (error) {
                 console.log(error);
@@ -54,10 +63,9 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
                 setPollsListOptions(tempPollsListOptions);
                 setPollsList(tempPollsList);
             }
-            // TODO: handle 500 status (empty list, internal error)
+            // TODO: handle 500/401? status (empty list, internal error)
         };
 
-        // We acticed the async function
         fetchPollsData();
 
     }, []);
@@ -66,7 +74,11 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-answers/${poll_id}`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-answers/${poll_id}`
+                ,{headers: new Headers({
+                            'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                    }
+                );
                 parsedServerResponse = await serverResponse.json();
 
             } catch (error) {
@@ -85,7 +97,7 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
                 setPollAnswersList(tempPollsAnswersListOptions);
                 setIsPollSelected(true);
             }
-            // TODO: handle 500 status (empty list, internal error)
+            // TODO: handle 500/401? status (empty list, internal error)
         };
 
 

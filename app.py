@@ -1,6 +1,7 @@
 from flask import Flask, request, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
+from flask_httpauth import HTTPBasicAuth
 from sqlalchemy.sql import func
 from telegram import Bot
 from bot_manager import init_bot
@@ -10,7 +11,6 @@ import config
 
 # TODO - nice to have:
 # filter according to several polls
-# authorize (cant use url without login) from tutorial presentation flask
 
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
@@ -19,6 +19,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.db_connection
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+auth = HTTPBasicAuth()
 poll_id_mapper = {}
 
 
@@ -86,6 +87,7 @@ def get_admin_hashed_password(admin_name: str):
     admin = Admins.query.filter_by(admin_name=admin_name).first()
     return admin.password if admin is not None else None
 
+
 def get_user_ids(poll_id_to_filter_by, answers_to_filter_by, to_filter):
     all_user_ids_registered = []
     users_ids_filtered_and_registered = []
@@ -99,7 +101,7 @@ def get_user_ids(poll_id_to_filter_by, answers_to_filter_by, to_filter):
         return all_user_ids_registered
     else:
         filtered_user = []
-        for answer in answers_to_filter_by: #TODO make sure it is sent as a list from react!!
+        for answer in answers_to_filter_by:
             try:
                 filtered_user.append(Polls_users_answers.query.filter_by(poll_id=poll_id_to_filter_by, user_answer=answer).all())
             except Exception as e:
@@ -111,10 +113,25 @@ def get_user_ids(poll_id_to_filter_by, answers_to_filter_by, to_filter):
         return users_ids_filtered_and_registered
 
 
+@auth.verify_password
+def verify_password(admin_name, password):
+    hashed_password = get_admin_hashed_password(admin_name)
+    if hashed_password is None:
+        return False
+    is_correct_password = check_password_hash(hashed_password, password)
+    return is_correct_password
+
+
 @app.route("/bot/register-user/", methods=['POST'])
 def register_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     if request.method == 'POST':
         try:
             user = Users.query.filter_by(user_id=user_id).first()
@@ -136,24 +153,39 @@ def register_user():
 def remove_user():
     user_id = request.form['user_id']
     user_name = request.form['user_name']
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     if request.method == 'DELETE':
         user = Users.query.filter_by(user_id=user_id, user_name=user_name).first()
         try:
-            user.user_name = None  #dont delete user just change his name to None (as if it was deleted)
-            db.session.commit()
+            if user is not None:
+                user.user_name = None  #dont delete user just change his name to None (as if it was deleted)
+                db.session.commit()
         except Exception as e:
             return get_bot_response_error(e)
-        return Response("successful request", status=200, mimetype='plain/text')
+        if user is not None:
+            return Response("successful request", status=200, mimetype='plain/text')
+        else:
+            return Response("user doesnt exist", status=403, mimetype='plain/text')
     else:
         return Response("invalid request", status=500, mimetype='plain/text')
 
 
 @app.route("/bot/get-poll-answer/", methods=['POST'])
 def get_poll_answer():
+    try:
+        bot_sent_token = request.form['bot_token']
+    except Exception as e:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
+    if bot_sent_token != config.boot_key:
+        return Response("user Unauthorized", status=400, mimetype='plain/text')
     user_id = request.form['user_id']
     poll_bot_id = request.form['poll_bot_id']
     answer_index = request.form['answer_index']
-
     poll_internal_id = poll_id_mapper[poll_bot_id]
     del poll_id_mapper[poll_bot_id]
     try:
@@ -171,6 +203,7 @@ def get_poll_answer():
 
 
 @app.route("/admins/send-poll/", methods=['POST'])
+@auth.login_required
 @cross_origin()
 def send_poll_to_user():
     poll_question, poll_answers, poll_id_to_filter_by, answers_to_filter_by, to_filter = get_new_poll_data_and_filter_data(request)
@@ -198,6 +231,7 @@ def send_poll_to_user():
 
 
 @app.route("/admins/add-admin/", methods=['POST'])
+@auth.login_required
 @cross_origin()
 def add_new_admin():
     admin_name = request.json['adminName']
@@ -214,6 +248,7 @@ def add_new_admin():
 
 
 @app.route("/admins/get-admins-list", methods=['GET'])
+@auth.login_required
 @cross_origin()
 def get_admins_list():
     try:
@@ -241,6 +276,7 @@ def authorize_admin():
 
 
 @app.route("/admins/get-polls-list", methods=['GET'])
+@auth.login_required
 @cross_origin()
 def get_polls_list():
     try:
@@ -255,6 +291,7 @@ def get_polls_list():
 
 
 @app.route("/admins/get-poll-answers/<poll_id>", methods=['GET'])
+@auth.login_required
 @cross_origin()
 def get_poll_answers(poll_id):
     try:
@@ -267,7 +304,9 @@ def get_poll_answers(poll_id):
         poll_answers.append(poll_answer.poll_answer_option)
     return get_react_http_response(status_code=200, body={"polls_answers_list": poll_answers})
 
+
 @app.route("/admins/get-poll-user-answers/<poll_id>", methods=['GET'])
+@auth.login_required
 @cross_origin()
 def get_poll_user_answers(poll_id):
     try:
@@ -289,6 +328,7 @@ def get_poll_user_answers(poll_id):
     for poll_user_answer in poll_users_answers_list:
         poll_user_answer_counters[poll_user_answer.user_answer] += 1
     return get_react_http_response(status_code=200, body={"poll_users_answers": poll_user_answer_counters})
+
 
 def run_project():
     # db.drop_all()

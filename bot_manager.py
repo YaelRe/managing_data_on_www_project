@@ -34,8 +34,8 @@ def register(update: Update, context: CallbackContext):
         if len(user_name) > MAX_USER_NAME_LENGTH:
             send_message_to_bot(context, chat_id, f"ERROR: user-name could not be longer than {MAX_USER_NAME_LENGTH}")
             return
-        url = f'http://127.0.0.1:5000/bot/register-user/'
-        data = {'user_id': chat_id,'user_name' : user_name} 
+        url = f'http://127.0.0.1:{config.server_port}/bot/register-user/'
+        data = {'user_id': chat_id,'user_name' : user_name, 'bot_token' : TOKEN}
         server_response = requests.post(url=url, data=data)
         if server_response.status_code == 200:
             send_message_to_bot(context, chat_id, f"{user_name} was registered successfuly!")
@@ -55,8 +55,8 @@ def remove(update: Update, context: CallbackContext):
     else:
         user_name = str(context.args[0])
         chat_id = update.effective_chat.id
-        url = f'http://127.0.0.1:5000/bot/remove-user/'
-        data = {'user_id': chat_id, 'user_name': user_name}
+        url = f'http://127.0.0.1:{config.server_port}./bot/remove-user/'
+        data = {'user_id': chat_id, 'user_name': user_name, 'bot_token': TOKEN}
         server_response = requests.delete(url=url, data=data)
         if server_response.status_code == 200:
             send_message_to_bot(context, chat_id, f"{user_name} was removed successfuly!")
@@ -82,8 +82,8 @@ def receive_poll_answer(update: Update, context: CallbackContext) -> None:
     answer_index = answer.option_ids[0] 
     poll_id = answer.poll_id
     chat_id = answer.user.id
-    url = f'http://127.0.0.1:5000/bot/get-poll-answer/'
-    data = {'user_id': chat_id, 'poll_bot_id': poll_id, 'answer_index': answer_index}
+    url = f'http://127.0.0.1:{config.server_port}/bot/get-poll-answer/'
+    data = {'user_id': chat_id, 'poll_bot_id': poll_id, 'answer_index': answer_index , 'bot_token' : TOKEN}
     server_response = requests.post(url=url, data=data)
     if server_response.status_code != 200:
         send_message_to_bot(context, chat_id, f"ERROR: send poll answer failed due to internal error")

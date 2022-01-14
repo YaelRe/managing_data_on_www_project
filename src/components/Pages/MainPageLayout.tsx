@@ -9,11 +9,19 @@ import {PollResults} from "./PollResults";
 export interface MainPageLayoutProps {
     loggedIn: Boolean;
     setLoggedIn: React.Dispatch<React.SetStateAction<Boolean>>;
+    adminName :string;
+    setAdminName : React.Dispatch<React.SetStateAction<string>>;
+    adminsPassword :string;
+    setAdminsPassword : React.Dispatch<React.SetStateAction<string>>;
     page: number
 }
 export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
     loggedIn,
     setLoggedIn,
+    adminName,
+    setAdminName,
+    adminsPassword,
+    setAdminsPassword,
     page,
 }) => {
 
@@ -24,20 +32,22 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
     if(loggedIn){
         switch(page) {
             case 0:
-                return < PollResults />;
+                return < PollResults adminName={adminName} adminsPassword={adminsPassword}/>;
             case 1:
-                return <CreateRegularPoll isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
+                return <CreateRegularPoll isFiltered={isFiltered} setIsFiltered={setIsFiltered}
+                                        adminName={adminName} adminsPassword={adminsPassword} />;
             case 2:
                 return <CreateFilteredPoll selectedPollId={selectedPollId} setSelectedPollId={setSelectedPollId}
                                            filteredAnswersList={filteredAnswersList} setFilteredAnswersList={setFilteredAnswersList}
-                                           isFiltered={isFiltered} setIsFiltered={setIsFiltered}/>;
+                                           isFiltered={isFiltered} setIsFiltered={setIsFiltered}
+                                            adminName={adminName} adminsPassword={adminsPassword}/>;
             case 3:
-                return <ManageAdmins />;
+                return <ManageAdmins adminName={adminName} adminsPassword={adminsPassword}/>;
             default:
-                return null; // TODO: ......
+                return null; // TODO: change or keep?
         }
     } else{
-        return < LogInPage setLoggedIn={setLoggedIn} />
+        return < LogInPage setLoggedIn={setLoggedIn} setAdminName={setAdminName} setAdminsPassword={setAdminsPassword}/>
     }
     
 };
