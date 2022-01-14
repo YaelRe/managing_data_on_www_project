@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../App.css';
+import '../../../App.css';
 import {FilteredPolls} from "./FilteredPolls";
 import {SendNewPoll} from "./SendNewPoll";
 
@@ -24,9 +24,6 @@ export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
     adminName,
     adminsPassword,
 }) => {
-
-    setIsFiltered(true);
-
     return (
         <div className='create-filtered-poll-container'>
             <div>
@@ -34,7 +31,7 @@ export const CreateFilteredPoll : React.FC<CreateFilteredPollProps> = ({
                             adminName={adminName} adminsPassword={adminsPassword}/>
             </div>
             <div>
-            <SendNewPoll isFiltered={isFiltered} selectedPollId={selectedPollId} filteredAnswersList={filteredAnswersList}
+            <SendNewPoll isFiltered={true} selectedPollId={selectedPollId} filteredAnswersList={filteredAnswersList}
                             adminName={adminName} adminsPassword={adminsPassword}/>
             </div>
         </div>

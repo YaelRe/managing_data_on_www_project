@@ -1,10 +1,10 @@
 import React from 'react';
 import '../../App.css';
 import { LogInPage } from './LogInPage';
-import { ManageAdmins } from './ManageAdmins';
-import {CreateFilteredPoll} from "./CreateFilteredPoll";
-import {CreateRegularPoll} from "./CreateRegularPoll";
-import {PollResults} from "./PollResults";
+import { ManageAdmins } from './Admins/ManageAdmins';
+import {CreateFilteredPoll} from "./Polls/CreateFilteredPoll";
+import {CreateRegularPoll} from "./Polls/CreateRegularPoll";
+import {PollResults} from "./Results/PollResults";
 
 export interface MainPageLayoutProps {
     loggedIn: Boolean;
@@ -44,7 +44,7 @@ export const MainPageLayout: React.FC<MainPageLayoutProps> = ({
             case 3:
                 return <ManageAdmins adminName={adminName} adminsPassword={adminsPassword}/>;
             default:
-                return null; // TODO: change or keep?
+                return <h1> 400 - Bad request </h1>;
         }
     } else{
         return < LogInPage setLoggedIn={setLoggedIn} setAdminName={setAdminName} setAdminsPassword={setAdminsPassword}/>

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../App.css';
+import '../../../App.css';
 import {SendNewPoll} from "./SendNewPoll";
 
 export interface CreateRegularPollProps {
@@ -15,10 +15,9 @@ export const CreateRegularPoll : React.FC<CreateRegularPollProps> = ({
     adminName,
     adminsPassword,
 }) => {
-    setIsFiltered(false);
     return (
         <div className='creat-regular-poll-container'>
-            <SendNewPoll isFiltered={isFiltered} selectedPollId={-1} filteredAnswersList={[]}
+            <SendNewPoll isFiltered={false} selectedPollId={-1} filteredAnswersList={[]}
                             adminName={adminName} adminsPassword={adminsPassword}/>
         </div>
     )

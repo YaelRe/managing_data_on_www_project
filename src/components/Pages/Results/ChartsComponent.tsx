@@ -42,11 +42,10 @@ export const ChartsComponent: React.FC<ChartsComponentProps> = ({
 
     }, [pieChartsData]);
 
-        //TODO: move and change style (to css)
 
     return (
-        <div className='charts-container' style={{marginTop: '50px',  display: 'flex'}}>
-            <div id='pie-chart' style={{width: "50%", height: "250px", flex: "1"}} />
+        <div className='charts-container' >
+            <div id='pie-chart' className='pie-chart' />
         </div>
     );
 };

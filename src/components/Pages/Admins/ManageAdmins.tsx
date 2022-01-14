@@ -1,6 +1,6 @@
-import '../../App.css';
+import '../../../App.css';
 import React from "react";
-import {AdminLine} from "../AdminLine";
+import {AdminLine} from "./AdminLine";
 import {Buffer} from "buffer";
 
 export interface ManageAdminsProps {
@@ -33,7 +33,6 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
             } catch (error) {
                 console.log(error);
             }
-            // TODO: handle 500/401? status (empty list, internal error)
 
             if (serverResponse && serverResponse.status === 200 && parsedServerResponse["admins_list"].length !== 0){
                 const temp_list = parsedServerResponse["admins_list"];
@@ -102,14 +101,13 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
                 <p className="login-text">Password</p>
                 <input className="password" value={currentPasswordInput} onChange={handlePasswordInputChange} />
                 <div className='submit-button'>
-                    <button className="submit" onClick={addAdminHandler}>Submit</button>
+                    <button style={{marginTop:"25px", marginBottom:"25px"}} className="submit" onClick={addAdminHandler}>Submit</button>
                 </div>
                 {errorMessage && (<p className="error-message"> {errorMessage} </p>)}
                 {successMessage && (<p className="success-message"> {successMessage} </p>)}
             </div>
             <div className='admins-container'>
-                <h2>Admins list </h2>
-            {/*    change key to better key*/}
+                <h2 style={{marginBottom:"50px"}}>Admins list </h2>
             {   admins.length > 0 ?
                     admins.map(admin =>
                     <AdminLine key={Math.random()} admin={admin}/>) :

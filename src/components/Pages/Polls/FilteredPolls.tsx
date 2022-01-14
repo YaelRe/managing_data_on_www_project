@@ -1,6 +1,5 @@
-import '../../App.css';
+import '../../../App.css';
 import React from "react";
-import { Poll } from '../../types';
 import Select, {MultiValue, SingleValue} from 'react-select'
 import {Buffer} from "buffer";
 
@@ -19,7 +18,6 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
     adminsPassword,
 }) => {
 
-    const [pollsList, setPollsList] = React.useState<Poll[]>([]);
     const [pollsListOptions, setPollsListOptions] = React.useState<any[]>([]);
     const [pollAnswersList, setPollAnswersList] = React.useState<any[]>([]);
     const [isPollSelected, setIsPollSelected] = React.useState<Boolean>(false);
@@ -45,14 +43,8 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
 
             if (serverResponse && serverResponse.status === 200 && parsedServerResponse["polls_list"].length !== 0){
                 const tempList = parsedServerResponse["polls_list"];
-                const tempPollsList: Poll[] = [];
                 const tempPollsListOptions: any[] = [];
                 tempList.map((poll:any) =>{
-                    const newPoll: Poll = {
-                    poll_id: poll[0],
-                    poll_question:  poll[1],
-                    };
-                    tempPollsList.push(newPoll);
                     const newJsonPoll: any ={
                         value: poll[0],
                         label: poll[1],
@@ -61,9 +53,7 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
 
                 });
                 setPollsListOptions(tempPollsListOptions);
-                setPollsList(tempPollsList);
             }
-            // TODO: handle 500/401? status (empty list, internal error)
         };
 
         fetchPollsData();
@@ -97,7 +87,6 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
                 setPollAnswersList(tempPollsAnswersListOptions);
                 setIsPollSelected(true);
             }
-            // TODO: handle 500/401? status (empty list, internal error)
         };
 
 
@@ -122,10 +111,10 @@ export const FilteredPolls : React.FC<FilteredPollsProps> = ({
 
     return (
         <>
-            <h2> Choose poll and answers to filter by:</h2>
-            <div className='polls-list-container'>
-                <Select options={pollsListOptions} onChange={handlePollSelected} placeholder={"Select poll..."}/>
-                {isPollSelected && (<Select options={pollAnswersList} isMulti onChange={handleAnswerSelected} isClearable={false} placeholder={"Select answers..."} />)}
+            <h2 style={{marginBottom: '45px'}}> Choose poll and answers to filter by:</h2>
+            <div className='polls-list-container' style={{left: '50%'}}>
+                <Select className='select-container' options={pollsListOptions} onChange={handlePollSelected} placeholder={"Select poll..."}/>
+                {isPollSelected && (<Select className='select-container' options={pollAnswersList} isMulti onChange={handleAnswerSelected} isClearable={false} placeholder={"Select answers..."} />)}
             </div>
         </>
     );

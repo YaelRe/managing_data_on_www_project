@@ -1,12 +1,9 @@
-import '../../App.css';
+import '../../../App.css';
 import React from "react";
 import Select, {SingleValue} from 'react-select'
-import * as am5 from "@amcharts/amcharts5";
-import * as am5percent from "@amcharts/amcharts5/percent";
-import am4themes_animated from "@amcharts/amcharts5/themes/animated";
-import {ChartsComponent} from "../ChartsComponent";
+import {ChartsComponent} from "./ChartsComponent";
+import {Buffer} from "buffer";
 
-// am5.useTheme(am4themes_animated);
 export interface PollResultsProps {
     adminName: string;
     adminsPassword: string;
@@ -19,17 +16,21 @@ export const PollResults : React.FC<PollResultsProps> = ({
 
     const [pollsListOptions, setPollsListOptions] = React.useState<any[]>([]);
     const [pollAnswersList, setPollAnswersList] = React.useState<any[]>([]);
-    const [isPollSelected, setIsPollSelected] = React.useState<Boolean>(false);
     const [selectedPollId, setSelectedPollId] = React.useState<number>(-1);
+    const [isPollAnswered, setIsPollAnswered] = React.useState<boolean>(true);
     const [pieChartsData, setPieChartsData] = React.useState<any[]>([]);
-    // const chartsRoot = React.useRef<any>(null);
+
 
     React.useEffect(() => {
         const fetchPollsData = async () => {
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-polls-list`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-polls-list`
+                ,{headers: new Headers({
+                        'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                }
+                );
                 parsedServerResponse = await serverResponse.json();
 
             } catch (error) {
@@ -49,10 +50,6 @@ export const PollResults : React.FC<PollResultsProps> = ({
                 });
                 setPollsListOptions(tempPollsListOptions);
             }
-            // TODO: handle 500 status (empty list, internal error)
-            // if (chartsRoot !== null) {
-            //     chartsRoot.current = am5.Root.new("chartDiv");
-            // }
         };
         fetchPollsData();
 
@@ -60,12 +57,14 @@ export const PollResults : React.FC<PollResultsProps> = ({
 
     React.useEffect(() => {
         const fetchPollsAnswers = async () => {
-            // const fetchPollsAnswers = async (poll_id: number) => {
-            // debugger;
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-answers/${selectedPollId}`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-answers/${selectedPollId}`
+                ,{headers: new Headers({
+                            'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                    }
+                );
                 parsedServerResponse = await serverResponse.json();
 
             } catch (error) {
@@ -82,11 +81,7 @@ export const PollResults : React.FC<PollResultsProps> = ({
                     tempPollsAnswersListOptions.push((newJsonAnswer));
                 });
                 setPollAnswersList(tempPollsAnswersListOptions);
-                setIsPollSelected(true);
             }
-            // debugger;
-            // TODO: handle 500 status (empty list, internal error)
-            // };
         };
         fetchPollsAnswers();
 
@@ -98,7 +93,11 @@ export const PollResults : React.FC<PollResultsProps> = ({
             let serverResponse;
             let parsedServerResponse;
             try {
-                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-user-answers/${selectedPollId}`);
+                serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-poll-user-answers/${selectedPollId}`
+                    ,{headers: new Headers({
+                            'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+                    }
+                );
                 parsedServerResponse = await serverResponse.json();
 
             } catch (error) {
@@ -108,6 +107,7 @@ export const PollResults : React.FC<PollResultsProps> = ({
                 const tempUsersResultsDict = parsedServerResponse["poll_users_answers"];
 
                 const chartData: any[] = [];
+                let isSomeoneAnswered = false;
                 pollAnswersList.map((poll_answer_obj:any) =>{
                     const poll_answer = poll_answer_obj["label"];
                     const newJsonAnswerVotes: any ={
@@ -115,33 +115,38 @@ export const PollResults : React.FC<PollResultsProps> = ({
                         votes: tempUsersResultsDict[poll_answer],
                     };
                      chartData.push((newJsonAnswerVotes));
+                     if (tempUsersResultsDict[poll_answer] !== 0){
+                        isSomeoneAnswered = true;
+                    }
                 });
-                setPieChartsData(chartData);
-                // debugger;
-                // setIsPollSelected(true);
+                if (selectedPollId !== -1){
+                    setPieChartsData(chartData);
+                    setIsPollAnswered(isSomeoneAnswered);
+                }
             }
-            // TODO: handle 500 status (empty list, internal error)
         }; fetchPollsUsersAnswers();
 
-    }, [setIsPollSelected,setPollAnswersList, pollAnswersList]);
+    }, [setPollAnswersList, pollAnswersList]);
 
      const handlePollSelected = (event: SingleValue<{ value: number, label: string }>) => {
-         setIsPollSelected(false);
-         if (event !== null){
+         setIsPollAnswered(true);
+         if (event !== null ){
              setSelectedPollId(event.value);
-             //fetchPollsAnswers();
-             // fetchPollsUsersAnswers(event.value);
          }
     };
 
         return (
         <>
-            <h2> Choose poll to see it's results:</h2>
+            <h2 style={{marginBottom: '40px'}}> Choose poll to see it's results:</h2>
             <div className='polls-list-container'>
-                <Select options={pollsListOptions} onChange={handlePollSelected} placeholder={"Select poll..."}/>
+                <Select className='select-container' options={pollsListOptions} onChange={handlePollSelected} placeholder={"Select poll..."}/>
             </div>
             <div className='charts-component'>
-                <ChartsComponent pieChartsData={pieChartsData}/>
+                {   isPollAnswered  ?
+                    <ChartsComponent pieChartsData={pieChartsData}/> :
+                    <h2> There are still no users answers for this poll </h2>
+            }
+
             </div>
         </>
     );

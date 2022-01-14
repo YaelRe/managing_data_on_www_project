@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../App.css';
+import '../../../App.css';
 import {Buffer} from "buffer";
 
 export interface SendNewPollProps {
@@ -98,8 +98,8 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
        setCurrentAnswer4Input('');
        setCurrentAnswersCounter(0);
 
-       if (serverResponse && serverResponse.status === 500){
-            setSentPollErrorMessage(parsedServerResponse["message"]); // TODO: handle 500/401? status (empty list, internal error)
+       if (serverResponse && serverResponse.status !== 200){
+            setSentPollErrorMessage(parsedServerResponse["message"]);
 
        } else {
            setSentPollMessage("Poll was sent successfully")
@@ -144,14 +144,16 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
 
     return (
         <div className='new-poll-container'>
-            <h2 className='new-poll-header'> create new poll </h2>
+            <h2 className='new-poll-header'> create new poll: </h2>
             <p className='new-poll-answers-text'> question </p>
             <input className="poll-question" value={currentQuestionInput} onChange={handleQuestionInputChange} />
             <p className='new-poll-answers-text'> answers </p>
-            <input className="poll-answer" value={currentAnswer1Input} onChange={handleAnswer1InputChange} />
-            <input className="poll-answer" value={currentAnswer2Input} onChange={handleAnswer2InputChange} />
-            <input className="poll-answer" value={currentAnswer3Input} onChange={handleAnswer3InputChange} />
-            <input className="poll-answer" value={currentAnswer4Input} onChange={handleAnswer4InputChange} />
+            <div className="answers-container">
+                <input className="poll-answer" value={currentAnswer1Input} onChange={handleAnswer1InputChange} />
+                <input className="poll-answer" value={currentAnswer2Input} onChange={handleAnswer2InputChange} />
+                <input className="poll-answer" value={currentAnswer3Input} onChange={handleAnswer3InputChange} />
+                <input className="poll-answer" value={currentAnswer4Input} onChange={handleAnswer4InputChange} />
+            </div>
             <div className='submit-button'>
                 <button className="submit-poll-button" onClick={createPoll}>Create Poll</button>
             </div>

@@ -35,4 +35,5 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>)}
         </div>
     )
+//    change nav bar style
 }

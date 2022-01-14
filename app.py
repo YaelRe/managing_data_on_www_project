@@ -9,8 +9,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from utils import get_bot_response_error, get_react_http_response, get_new_poll_data_and_filter_data
 import config
 
-# TODO - nice to have:
-# filter according to several polls
 
 TOKEN = config.boot_key
 HTTP_CODES = config.http_codes
@@ -215,8 +213,6 @@ def send_poll_to_user():
         return get_react_http_response(status_code=500, body={"message": "Poll wasn't sent due to internal server error"})
     bot = Bot(token=TOKEN)
 
-    # TODO: consider change send_poll to send message (ot just remove the 100% and view results in poll message)
-    # TODO: make sure that send_poll can't raise errors
     for i in range(len(chat_ids_list)):
         message = bot.send_poll(
             chat_ids_list[i],

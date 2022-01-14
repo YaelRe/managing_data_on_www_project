@@ -15,11 +15,12 @@ export const Header: React.FC<HeaderProps> = ({
 
     const HandleLogOutClick = () => {
         setLoggedIn(false);
+        changePage(0);
     }
 
     return (
         <div className='header-container'>
-            <h1 className='app-header'> Poll Manager </h1>
+            <h1 className='app-header'> Poll Manager  </h1>
             {loggedIn && (<Navbar changePage={changePage}/>)}
             <div className='log-out-button'>
                 {loggedIn && (<button className="log-out" onClick={HandleLogOutClick}>Log Out</button>)}
