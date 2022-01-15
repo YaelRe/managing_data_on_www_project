@@ -55,7 +55,7 @@ def remove(update: Update, context: CallbackContext):
     else:
         user_name = str(context.args[0])
         chat_id = update.effective_chat.id
-        url = f'http://127.0.0.1:{config.server_port}./bot/remove-user/'
+        url = f'http://127.0.0.1:{config.server_port}/bot/remove-user/'
         data = {'user_id': chat_id, 'user_name': user_name, 'bot_token': TOKEN}
         server_response = requests.delete(url=url, data=data)
         if server_response.status_code == 200:

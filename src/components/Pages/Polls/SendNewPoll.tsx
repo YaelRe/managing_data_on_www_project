@@ -23,7 +23,6 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const [currentAnswer2Input, setCurrentAnswer2Input] = React.useState<string>('');
     const [currentAnswer3Input, setCurrentAnswer3Input] = React.useState<string>('');
     const [currentAnswer4Input, setCurrentAnswer4Input] = React.useState<string>('');
-    const [currentAnswersCounter, setCurrentAnswersCounter] = React.useState<number>(0);
     const [questionErrorMessage, setQuestionErrorMessage] = React.useState<string>('');
     const [answersErrorMessage, setAnswersErrorMessage] = React.useState<string>('');
     const [unselectedPollErrorMessage, setUnselectedPollErrorMessage] = React.useState<string>('');
@@ -31,24 +30,30 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const [sentPollMessage, setSentPollMessage] = React.useState<string>('');
     const [sentPollErrorMessage, setSentPollErrorMessage] = React.useState<string>('');
 
-    const isPollValid =  (question: string, answer1: string, answer2: string) => {
+    const isPollValid =  (question: string) => {
         let returnValue = true;
         if (question === ''){
             returnValue = false;
-            setQuestionErrorMessage('poll question can not be empty');
+            setQuestionErrorMessage('Poll question can not be empty');
         }
-        if (currentAnswersCounter < 2){
+        let answersCounter = 0;
+        if (currentAnswer1Input !== '') {answersCounter = answersCounter +1}
+        if (currentAnswer2Input !== '') {answersCounter = answersCounter +1}
+        if (currentAnswer3Input !== '') {answersCounter = answersCounter +1}
+        if (currentAnswer4Input !== '') {answersCounter = answersCounter +1}
+
+        if (answersCounter < 2){
             returnValue = false;
-            setAnswersErrorMessage('poll must have at least 2 answers');
+            setAnswersErrorMessage('Poll must have at least 2 answers');
         }
         if (isFiltered){
             if (selectedPollId === -1){
                 returnValue = false;
-                setUnselectedPollErrorMessage("you didn't choose a poll to filter by")
+                setUnselectedPollErrorMessage("You didn't choose a poll to filter by")
             }
             if (filteredAnswersList.length === 0){
                 returnValue = false;
-                setUnselectedAnswersErrorMessage("you need to choose at least one answer to filter by")
+                setUnselectedAnswersErrorMessage("You need to choose at least one answer to filter by")
             }
         }
         return returnValue;
@@ -61,7 +66,6 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
         setUnselectedAnswersErrorMessage('');
         setSentPollErrorMessage('');
         setSentPollMessage('');
-        setCurrentAnswersCounter(0);
         const question = currentQuestionInput;
         const answer1 = currentAnswer1Input;
         const answer2 = currentAnswer2Input;
@@ -72,7 +76,7 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
         const to_filter = isFiltered;
 
 
-        if (!isPollValid(question, answer1, answer2)){
+        if (!isPollValid(question)){
             return;
         }
         const requestData = {
@@ -96,7 +100,6 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
        setCurrentAnswer2Input('');
        setCurrentAnswer3Input('');
        setCurrentAnswer4Input('');
-       setCurrentAnswersCounter(0);
 
        if (serverResponse && serverResponse.status !== 200){
             setSentPollErrorMessage(parsedServerResponse["message"]);
@@ -114,32 +117,20 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const handleAnswer1InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer1Input(e.target.value);
-        if(e.target.value !== ''){
-            setCurrentAnswersCounter(currentAnswersCounter + 1);
-        }
     };
 
     const handleAnswer2InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer2Input(e.target.value);
-        if(e.target.value !== '') {
-            setCurrentAnswersCounter(currentAnswersCounter + 1)
-        }
     }
 
     const handleAnswer3InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer3Input(e.target.value);
-        if(e.target.value !== '') {
-            setCurrentAnswersCounter(currentAnswersCounter + 1);
-        }
     }
     const handleAnswer4InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer4Input(e.target.value);
-        if(e.target.value !== '') {
-            setCurrentAnswersCounter(currentAnswersCounter + 1);
-        }
     }
 
     return (

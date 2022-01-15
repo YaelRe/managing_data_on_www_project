@@ -42,7 +42,7 @@ export const LogInPage: React.FC<LogInPageProps> = ({
             setErrorMessage(parsedServerResponse["message"]);
             setCurrentPasswordInput('');
        } else if (parsedServerResponse["is_correct_password"] === false){
-            setErrorMessage('password is incorrect!');
+            setErrorMessage('Password is incorrect!');
             setCurrentPasswordInput('');
        } else{
            setAdminName(currentAdminNameInput)

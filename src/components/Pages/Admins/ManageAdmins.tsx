@@ -49,9 +49,13 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
         setSuccessMessage('');
         const newAdminName = currentAdminNameInput;
         const newPassword = currentPasswordInput;
+        if (newAdminName === ''){
+            setErrorMessage("You need to insert an admin name");
+            return;
+        }
 
         if (newPassword === ''){
-            setErrorMessage("password can not be empty");
+            setErrorMessage("Password can not be empty");
             return;
         }
 

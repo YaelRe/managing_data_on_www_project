@@ -264,8 +264,12 @@ def authorize_admin():
     admin_name = request.json['adminName']
     password = request.json['password']
     hashed_password = get_admin_hashed_password(admin_name)
+    if admin_name == '':
+        return get_react_http_response(status_code=400, body={"message": f"You didn't insert an admin name"})
+    if password == '':
+        return get_react_http_response(status_code=400, body={"message": f"You didn't insert a password"})
     if hashed_password is None:
-        return get_react_http_response(status_code=400, body={"message": f"admin {admin_name} doesn't exists in DB"})
+        return get_react_http_response(status_code=400, body={"message": f"Admin {admin_name} doesn't exists in DB"})
 
     is_correct_password = check_password_hash(hashed_password, password)
     return get_react_http_response(status_code=200, body={"is_correct_password": is_correct_password})
@@ -327,9 +331,10 @@ def get_poll_user_answers(poll_id):
 
 
 def run_project():
-    # db.drop_all()
-    # db.create_all()
-    # hashed_password = generate_password_hash(config.initial_password)
-    # save_admin_in_db(config.initial_admin_name, hashed_password)
+    # TODO: comment out befor submission( without drop all) + explain in read file about drop all and create all
+    db.drop_all()
+    db.create_all()
+    hashed_password = generate_password_hash(config.initial_password)
+    save_admin_in_db(config.initial_admin_name, hashed_password)
     init_bot()
     app.run(port=config.server_port)
