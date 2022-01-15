@@ -14,7 +14,7 @@ In the main directory you'll find the following files-
     * initial_admin_name 
     * initial_password 
     * db_connection string
-
+* src directory contains all the needed files for the React part
 
 ### `run_project.py`
 Runs all parts of the project (flask server, React and bot).\
