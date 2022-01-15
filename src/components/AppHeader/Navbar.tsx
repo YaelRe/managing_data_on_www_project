@@ -8,7 +8,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     changePage,
 }) => {
     const handlePageChange = (page: string) => {
-        // Think about a better way to do that:
         switch(page) {
             case 'Polls Results':
                 changePage(0);
@@ -35,5 +34,4 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>)}
         </div>
     )
-//    change nav bar style
 }

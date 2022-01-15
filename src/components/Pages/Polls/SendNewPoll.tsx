@@ -25,6 +25,7 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const [currentAnswer4Input, setCurrentAnswer4Input] = React.useState<string>('');
     const [questionErrorMessage, setQuestionErrorMessage] = React.useState<string>('');
     const [answersErrorMessage, setAnswersErrorMessage] = React.useState<string>('');
+    const [answersDuplicationErrorMessage, setAnswersDuplicationErrorMessage] = React.useState<string>('');
     const [unselectedPollErrorMessage, setUnselectedPollErrorMessage] = React.useState<string>('');
     const [unselectedAnswersErrorMessage, setUnselectedAnswersErrorMessage] = React.useState<string>('');
     const [sentPollMessage, setSentPollMessage] = React.useState<string>('');
@@ -37,10 +38,30 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
             setQuestionErrorMessage('Poll question can not be empty');
         }
         let answersCounter = 0;
-        if (currentAnswer1Input !== '') {answersCounter = answersCounter +1}
-        if (currentAnswer2Input !== '') {answersCounter = answersCounter +1}
-        if (currentAnswer3Input !== '') {answersCounter = answersCounter +1}
-        if (currentAnswer4Input !== '') {answersCounter = answersCounter +1}
+        if (currentAnswer1Input !== '') {
+            answersCounter = answersCounter +1
+        }
+        if (currentAnswer2Input !== '') {
+            answersCounter = answersCounter +1;
+            if (currentAnswer2Input === currentAnswer1Input){
+                setAnswersDuplicationErrorMessage('Answers should be unique and not duplicated');
+                returnValue = false;
+            }
+        }
+        if (currentAnswer3Input !== '') {
+            answersCounter = answersCounter +1;
+            if (currentAnswer3Input === currentAnswer2Input || currentAnswer3Input === currentAnswer1Input){
+                setAnswersDuplicationErrorMessage('Answers should be unique and not duplicated');
+                returnValue = false;
+            }
+        }
+        if (currentAnswer4Input !== '') {
+            answersCounter = answersCounter +1;
+            if (currentAnswer4Input === currentAnswer3Input || currentAnswer4Input === currentAnswer2Input || currentAnswer4Input === currentAnswer1Input){
+                setAnswersDuplicationErrorMessage('Answers should be unique and can\'t be duplicated');
+                returnValue = false;
+            }
+        }
 
         if (answersCounter < 2){
             returnValue = false;
@@ -62,6 +83,7 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const createPoll = async() => {
         setQuestionErrorMessage('');
         setAnswersErrorMessage('');
+        setAnswersDuplicationErrorMessage('');
         setUnselectedPollErrorMessage('');
         setUnselectedAnswersErrorMessage('');
         setSentPollErrorMessage('');
@@ -122,16 +144,16 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
     const handleAnswer2InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer2Input(e.target.value);
-    }
+    };
 
     const handleAnswer3InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer3Input(e.target.value);
-    }
+    };
     const handleAnswer4InputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setCurrentAnswer4Input(e.target.value);
-    }
+    };
 
     return (
         <div className='new-poll-container'>
@@ -153,6 +175,9 @@ export const SendNewPoll : React.FC<SendNewPollProps> = ({
             </div>
             <div>
             {answersErrorMessage && (<p className="error-message"> {answersErrorMessage} </p>)}
+            </div>
+            <div>
+            {answersDuplicationErrorMessage && (<p className="error-message"> {answersDuplicationErrorMessage} </p>)}
             </div>
             <div>
             {unselectedPollErrorMessage && (<p className="error-message"> {unselectedPollErrorMessage} </p>)}

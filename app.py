@@ -26,6 +26,7 @@ class Users(db.Model):
     user_id = db.Column(db.BigInteger, primary_key=True, nullable=False)
     user_name = db.Column(db.String(30), nullable=True)
 
+
 class Admins(db.Model):
     __tablename__ = 'admins'
     admin_name = db.Column(db.String(30), primary_key=True, nullable=False)
@@ -290,6 +291,27 @@ def get_polls_list():
     return get_react_http_response(status_code=200, body={"polls_list": polls_list})
 
 
+@app.route("/admins/get-polls-answers-amount", methods=['GET'])
+@auth.login_required
+@cross_origin()
+def get_polls_answers_amount_list():
+    try:
+        polls = Polls.query.all()
+    except Exception as e:
+        return get_react_http_response(status_code=500,
+                                       body={"message": "Could not retrieve Polls list due to internal server error"})
+    polls_answers_amount_list = []
+    for poll in polls:
+        try:
+            poll_answers_amount = db.session.query(Polls_users_answers).filter(Polls_users_answers.poll_id == poll.poll_id).count()
+        except Exception as e:
+            return get_react_http_response(status_code=500,
+                                           body={
+                                               "message": "Could not retrieve Polls list due to internal server error"})
+        polls_answers_amount_list.append([poll.question, poll_answers_amount])
+    return get_react_http_response(status_code=200, body={"polls_answers_amount_list": polls_answers_amount_list})
+
+
 @app.route("/admins/get-poll-answers/<poll_id>", methods=['GET'])
 @auth.login_required
 @cross_origin()
@@ -331,8 +353,7 @@ def get_poll_user_answers(poll_id):
 
 
 def run_project():
-    # TODO: comment out befor submission( without drop all) + explain in read file about drop all and create all
-    db.drop_all()
+    # db.drop_all()
     db.create_all()
     hashed_password = generate_password_hash(config.initial_password)
     save_admin_in_db(config.initial_admin_name, hashed_password)

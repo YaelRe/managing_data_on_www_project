@@ -1,8 +1,9 @@
 import '../../../App.css';
 import React from "react";
 import Select, {SingleValue} from 'react-select'
-import {ChartsComponent} from "./ChartsComponent";
 import {Buffer} from "buffer";
+import {PieChartComponent} from "./PieChartComponent"
+import {XYChartComponent} from "./XYChartComponent";
 
 export interface PollResultsProps {
     adminName: string;
@@ -17,8 +18,10 @@ export const PollResults : React.FC<PollResultsProps> = ({
     const [pollsListOptions, setPollsListOptions] = React.useState<any[]>([]);
     const [pollAnswersList, setPollAnswersList] = React.useState<any[]>([]);
     const [selectedPollId, setSelectedPollId] = React.useState<number>(-1);
-    const [isPollAnswered, setIsPollAnswered] = React.useState<boolean>(true);
+    const [isPollAnswered, setIsPollAnswered] = React.useState<boolean>(false);
+    const [isPollSelected, setIsPollSelected] = React.useState<boolean>(false);
     const [pieChartsData, setPieChartsData] = React.useState<any[]>([]);
+    const [xyChartsData, setXyChartsData] = React.useState<any[]>([]);
 
 
     React.useEffect(() => {
@@ -52,6 +55,40 @@ export const PollResults : React.FC<PollResultsProps> = ({
             }
         };
         fetchPollsData();
+
+    }, []);
+
+    React.useEffect(() => {
+    const fetchPollsAnswersAmountData = async () => {
+        let serverResponse;
+        let parsedServerResponse;
+        try {
+            serverResponse = await fetch(`http://127.0.0.1:5000/admins/get-polls-answers-amount`
+            ,{headers: new Headers({
+                    'Authorization': 'Basic ' + Buffer.from(`${adminName}:${adminsPassword}`).toString('base64') })
+            }
+            );
+            parsedServerResponse = await serverResponse.json();
+
+        } catch (error) {
+            console.log(error);
+        }
+
+        if (serverResponse && serverResponse.status === 200 && parsedServerResponse["polls_answers_amount_list"].length !== 0){
+            const tenpPollsAnswersAmountList = parsedServerResponse["polls_answers_amount_list"];
+            const tempXyChartData: any[] = [];
+            tenpPollsAnswersAmountList.map((poll:any) =>{
+                const newJsonPollAnswersAmount: any ={
+                    poll: poll[0],
+                    users_answers_amount: poll[1],
+                };
+                tempXyChartData.push((newJsonPollAnswersAmount));
+
+            });
+            setXyChartsData(tempXyChartData);
+        }
+    };
+    fetchPollsAnswersAmountData();
 
     }, []);
 
@@ -122,6 +159,7 @@ export const PollResults : React.FC<PollResultsProps> = ({
                 if (selectedPollId !== -1){
                     setPieChartsData(chartData);
                     setIsPollAnswered(isSomeoneAnswered);
+                    setIsPollSelected(true);
                 }
             }
         }; fetchPollsUsersAnswers();
@@ -129,7 +167,6 @@ export const PollResults : React.FC<PollResultsProps> = ({
     }, [setPollAnswersList, pollAnswersList]);
 
      const handlePollSelected = (event: SingleValue<{ value: number, label: string }>) => {
-         setIsPollAnswered(true);
          if (event !== null ){
              setSelectedPollId(event.value);
          }
@@ -142,11 +179,12 @@ export const PollResults : React.FC<PollResultsProps> = ({
                 <Select className='select-container' options={pollsListOptions} onChange={handlePollSelected} placeholder={"Select poll..."}/>
             </div>
             <div className='charts-component'>
-                {   isPollAnswered  ?
-                    <ChartsComponent pieChartsData={pieChartsData}/> :
-                    <h2> There are still no users answers for this poll </h2>
-            }
 
+                { isPollAnswered && (<h3 style={{marginBottom: '-50px'}}> Answer distribution for chosen poll: </h3>)}
+                { isPollAnswered && (<PieChartComponent pieChartsData={pieChartsData}/>)}
+                { isPollSelected && !isPollAnswered &&(<h3 style={{marginBottom: '60px'}}> There are still no users answers for the chosen poll </h3>)}
+                { pollsListOptions.length > 0  && (<h3 style={{marginBottom: '-50px'}}> Answers amount for each poll: </h3>)}
+                 <XYChartComponent xyChartsData={xyChartsData}/>
             </div>
         </>
     );

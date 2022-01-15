@@ -17,9 +17,9 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const [successMessage, setSuccessMessage] = React.useState<string>('');
     const [admins, setAdmins] = React.useState<string[]>([]);
+    const [fetchingData, setFetchingData ] = React.useState(true);
 
     React.useEffect(() => {
-
         const fetchAdminsData = async () => {
             let serverResponse;
             let parsedServerResponse;
@@ -30,6 +30,7 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
                     }
                 );
                 parsedServerResponse = await serverResponse.json();
+                setFetchingData(false);
             } catch (error) {
                 console.log(error);
             }
@@ -110,7 +111,8 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
                 {errorMessage && (<p className="error-message"> {errorMessage} </p>)}
                 {successMessage && (<p className="success-message"> {successMessage} </p>)}
             </div>
-            <div className='admins-container'>
+
+            { !fetchingData ? <div className='admins-container'>
                 <h2 style={{marginBottom:"50px"}}>Admins list </h2>
             {   admins.length > 0 ?
                     admins.map(admin =>
@@ -118,7 +120,7 @@ export const ManageAdmins : React.FC<ManageAdminsProps> = ({
 
                     <h2> No admins in DB </h2>
             }
-            </div>
+            </div> : 'Loading...'}
         </>
     );
 };

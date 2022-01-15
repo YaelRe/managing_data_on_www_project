@@ -36,7 +36,6 @@ export const LogInPage: React.FC<LogInPageProps> = ({
         } catch(e) {
             console.error(e);
        }
-  
 
        if (serverResponse && serverResponse.status === 400){
             setErrorMessage(parsedServerResponse["message"]);
@@ -45,22 +44,21 @@ export const LogInPage: React.FC<LogInPageProps> = ({
             setErrorMessage('Password is incorrect!');
             setCurrentPasswordInput('');
        } else{
-           setAdminName(currentAdminNameInput)
-           setAdminsPassword(currentPasswordInput)
+           setAdminName(currentAdminNameInput);
+           setAdminsPassword(currentPasswordInput);
            setCurrentPasswordInput('');
            setLoggedIn(true)
        }
     };
 
     const handleAdminNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // What is the problem with this approach? Read about debouncing.
         e.preventDefault();
-        setCurrentAdminNameInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
+        setCurrentAdminNameInput(e.target.value);
     };
 
     const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
-        setCurrentPasswordInput(e.target.value); // Hint <- this is the problem. think about state and re-rendering.
+        setCurrentPasswordInput(e.target.value);
     };
 
     return (

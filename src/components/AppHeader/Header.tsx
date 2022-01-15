@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
     const HandleLogOutClick = () => {
         setLoggedIn(false);
         changePage(0);
-    }
+    };
 
     return (
         <div className='header-container'>
