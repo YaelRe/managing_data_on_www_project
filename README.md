@@ -28,3 +28,4 @@ It creates empty tables with registering admin with:
 
 Note: for multiple runs please comment out the command db.drop_all() in function run_project() in app.py file.
 
+![Alt text](demo_images/PollsResults.JPG?raw=true "Title")
